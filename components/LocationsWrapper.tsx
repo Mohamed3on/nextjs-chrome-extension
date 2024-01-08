@@ -43,20 +43,33 @@ export const LocationsWrapper = () => {
             }
           });
 
-          // Convert the usersMap to an array if needed
-          let usersArray = Object.values(usersMap);
+          let usersArray: {
+            location: string;
+            name: string;
+            screen_name: string;
+          }[] = Object.values(usersMap);
 
-          console.log(usersArray);
-
-          const rawFriendsLocations = addLocations(usersArray);
-
-          const processedLocations = processLocations(rawFriendsLocations);
+          const processedLocations = processLocations(usersArray);
           const sortedData = Object.entries(processedLocations)
-            .sort(([, a], [, b]) => Number(b) - Number(a))
-            .map(([location, count]) => ({
-              location,
-              count,
-            }));
+            .filter(([, items]: [string, { size: number }]) => {
+              return items.size > 1;
+            })
+
+            .sort(
+              ([, a]: [string, { size: number }], [, b]: [string, { size: number }]) =>
+                b.size - a.size
+            )
+            .map(
+              ([location, items]: [
+                string,
+                {
+                  size: number;
+                }
+              ]) => ({
+                location,
+                count: items.size,
+              })
+            );
 
           setData(sortedData);
 

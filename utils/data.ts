@@ -14,45 +14,6 @@ export function titleCaseWithAcronyms(str) {
   return newStr;
 }
 
-// export function normalizeLocation(name) {
-//   let _s = name ? name.toLowerCase() : '';
-
-//   // Removal of specific substrings
-//   _s = removeSubstr(_s);
-
-//   if (
-//     [
-//       'home',
-//       'subscribe',
-//       '.com',
-//       '.net',
-//       '.org',
-//       '.eth',
-//       'solana',
-//       'blue/green sphere',
-//       'pale blue dot',
-//       'zoom',
-//       'newsletter',
-//       'free',
-//       '.ai',
-//       'everywhere',
-//       'online',
-//     ].some((sub) => _s.includes(sub))
-//   )
-//     return '';
-
-//   // Complex string processing
-//   _s = _s.replace(/ \([^)]*\)/g, ''); // Remove anything in parentheses
-//   _s = _s.replace(/( bay)? area$/gi, ''); // Handle "bay area"
-//   _s = _s.split(/\/| and |\||→|·|•|✈️/).pop();
-//   _s = _s.split('➡️').pop();
-//   _s = _s.replace(/,$/g, ''); // Remove trailing comma
-//   _s = _s.replace(/[^a-zA-Z,]/g, ' '); // Replace non-letter/non-comma with space
-//   _s = _s.trim();
-
-//   return _s;
-// }
-
 const duplicate_mapping = {
   CA: 'California',
   NY: 'New York',
@@ -113,17 +74,17 @@ const duplicate_mapping = {
   '🇨🇦': 'Canada',
   '🇩🇪': 'Germany',
   '🇪🇬': 'Egypt',
+  Polska: 'Poland',
+  'New York Ny': 'New York',
+  'Ma Usa': 'Massachusetts',
 };
 
 export function consolidateDuplicates(data) {
   const consolidated_data = {};
-  for (const item of data) {
-    const [key, value] = item;
-    // Map to representative if duplicate
-
+  for (const [key, value] of data) {
     const mappedKey = duplicate_mapping[key] || key;
     if (mappedKey in consolidated_data) {
-      consolidated_data[mappedKey] += value;
+      consolidated_data[mappedKey] = new Set([...consolidated_data[mappedKey], ...value]);
     } else {
       consolidated_data[mappedKey] = value;
     }
@@ -152,7 +113,7 @@ export const processLocation = (location: string) => {
 
   // Combine irrelevant substrings into a single regex for efficiency
   const irrelevantRegex =
-    /home|subscribe|\.com|\.net|\.org|\.eth|solana|sphere|zoom|join|sign up|ethereum|👉|newsletter|free|\.ai|everywhere|online|⬇️|127\.0\.0\.1|they\/them|he\/him|http|she\/her|earth|worldwide|global|🟩|internet|ios|🌴|🍁|\bhere\b|\d+°|🇪🇺|cloud|future|moon|web|network/;
+    /home|subscribe|\.com|\.net|\.org|\.eth|solana|sphere|zoom|join|sign up|ethereum|👉|newsletter|free|\.ai|everywhere|online|⬇️|127\.0\.0\.1|they\/them|he\/him|http|she\/her|earth|worldwide|global|🟩|internet|ios|🌴|🍁|\bhere\b|\d+°|🇪🇺|cloud|future|moon|web|network|remote|international|youtube|metaverse|monday|crypto|space|anywhere|beyond/;
 
   // Early return for irrelevant locations
   if (irrelevantRegex.test(lowerCaseLocation)) {
@@ -166,8 +127,16 @@ export const processLocation = (location: string) => {
   }
 
   // Remove specific terms
-  const removeRegex = /europe|the?\s*world|🌎|🌍|🌏|🌐|☁️/;
+  const removeRegex = /europe|(?:the\s+)?world|🌎|🌍|🌏|🌐|☁️|!/g;
+
   let processedLocation = lowerCaseLocation.replace(removeRegex, '');
+
+  // check for world OR remote OR !
+  const worldRegex = /!/;
+
+  if (worldRegex.test(processedLocation)) {
+    console.log(processedLocation, location, 'check this out');
+  }
 
   // Handle coordinates
   const coords = processedLocation.match(/-?\d+\.\d+,-?\d+\.\d+/g);
@@ -189,7 +158,12 @@ export const processLocation = (location: string) => {
     .filter((l) => l !== '');
 };
 
-export const processLocations = (locations: {}) => {
+export const processLocations = (
+  users: {
+    location: string;
+  }[]
+) => {
+  const locations = addLocations(users);
   const titledLocations = Object.fromEntries(
     Object.entries(locations).map(([k, v]) => [titleCaseWithAcronyms(k), v])
   );
@@ -207,9 +181,9 @@ export const addLocations = (theList) => {
 
       processedLocations?.forEach((location) => {
         if (locations[location]) {
-          locations[location] += 1;
+          locations[location].add(member.screen_name);
         } else {
-          locations[location] = 1;
+          locations[location] = new Set([member.screen_name]);
         }
       });
     }
