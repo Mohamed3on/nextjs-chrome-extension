@@ -10,10 +10,11 @@
     "48": "/icons/favicon-48.png",
     "128": "/icons/favicon-128.png"
   },
-  "permissions": [],
+  "permissions": ["storage", "geolocation"],
   "content_scripts": [
     {
-      "matches": ["https://*/*", "http://*/*"],
+      "matches": ["https://twitter.com/i/tweetdeck", "https://*.twitter.com/*"],
+      "run_at": "document_idle",
       "js": ["inject.js"]
     }
   ],
