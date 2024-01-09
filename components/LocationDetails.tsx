@@ -1,7 +1,9 @@
 import { User } from '@/components/LocationsWrapper';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { useLocationContext } from '@/lib/LocationContext';
-import React from 'react';
+import React, { useEffect } from 'react';
+
+import { GOOGLE_IMG_SCRAP } from 'google-img-scrap';
 
 const formatNumber = (num) => {
   return num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -9,6 +11,19 @@ const formatNumber = (num) => {
 
 export const LocationDetails = ({ locationName }: { locationName?: string }) => {
   const { locations } = useLocationContext();
+
+  const [image, setImage] = React.useState('');
+  useEffect(() => {
+    const fetchData = async () => {
+      const images = await GOOGLE_IMG_SCRAP({
+        search: locationName,
+      });
+
+      setImage(images.result[0].url);
+    };
+
+    fetchData();
+  }, [locationName]);
 
   const usersObject = locations[locationName];
 
@@ -21,11 +36,18 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
   const sortedUsers = users.sort((a, b) => b.followers - a.followers);
 
   return (
-    <div className='bg-gray-800 text-white p-8 max-w-md mx-auto rounded-lg shadow-lg'>
-      <button onClick={() => window.history.back()} className='mb-4 text-white hover:text-gray-300'>
+    <div className='bg-gray-800 text-white p-8 max-w-md mx-auto rounded-lg shadow-lg '>
+      <button
+        onClick={() => window.history.back()}
+        className='mb-4 text-white hover:text-gray-300 text-lg'
+      >
         &#8592; Back
       </button>
-      <h1 className='text-3xl font-semibold mb-6'>{locationName}</h1>
+      <div
+        className='w-full bg-cover bg-center h-64 text-white py-24 px-10 object-fill mb-3 rounded-md'
+        style={{ backgroundImage: `url(${image})`, backgroundSize: 'cover' }}
+      ></div>
+      <h1 className='text-3xl font-semibold mb-6'>Friends in {locationName}</h1>
       <ul className='space-y-4'>
         {sortedUsers.map((user, index) => (
           <li
@@ -37,7 +59,7 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
                 <AvatarImage src={user.avatar} />
               </Avatar>
               <div className='flex flex-col sm:flex-row'>
-                {user.isFriend && <span className='ml-2 text-sm text-green-400'>Following</span>}
+                {user.isFriend && <span className='text-sm text-green-400'>Following</span>}
                 <a
                   href={`https://twitter.com/${user.screen_name}`}
                   target='_blank'
@@ -49,10 +71,12 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
               </div>
             </div>
             <div className='flex flex-col items-end'>
-              <div className='flex items-center mb-1'>
-                <span className='text-gray-300 mr-2'>Lists:</span>
-                <span className='text-white'>{user.lists.length}</span>
-              </div>
+              {user.lists.length > 0 && (
+                <div className='flex items-center mb-4'>
+                  <span className='text-gray-300 mr-2'>Lists:</span>
+                  <span className='text-white'>{user.lists.length}</span>
+                </div>
+              )}
               <div className='flex items-center'>
                 <span className='text-gray-300 mr-2'>Followers:</span>
                 <span className='text-white'>{formatNumber(user.followers)}</span>

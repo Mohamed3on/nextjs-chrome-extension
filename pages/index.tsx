@@ -13,6 +13,7 @@ export default function Home() {
 
   useEffect(() => {
     const handleHashChange = () => {
+      window.scrollTo(0, 0);
       const hashValue = decodeURIComponent(window.location.hash.substring(1));
       if (hashValue === 'config') {
         setRoute('config');
@@ -50,9 +51,9 @@ export default function Home() {
   }, []);
 
   const renderContentBasedOnRoute = () => {
-    // if (route === 'config') {
-    //   return <Config onDataSubmit={onSubmit} />;
-    // }
+    if (route === 'config') {
+      return <Config onDataSubmit={onSubmit} />;
+    }
 
     if (route.startsWith('location/')) {
       const locationName = route.substring('location/'.length);
