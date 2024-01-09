@@ -46,7 +46,7 @@ const formSchema = z.object({
     .optional(),
 });
 
-export const Username = ({
+export const Config = ({
   onDataSubmit,
 }: {
   onDataSubmit: (data: z.infer<typeof formSchema>) => void;

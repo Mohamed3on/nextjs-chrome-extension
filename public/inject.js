@@ -132,7 +132,7 @@ const processUser = (user) => {
     name: user.name,
     screen_name: user.screen_name,
     avatar: user.profile_image_url_https.replace('_normal', ''),
-    followers_count: user.followers_count,
+    followers: user.followers_count,
     location: user.location,
   };
 };

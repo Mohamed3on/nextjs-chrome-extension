@@ -16,7 +16,10 @@ export const useLocationContext = () => {
 };
 
 export const LocationsProvider = ({ children }) => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState({
+    locations: {},
+    sortedLocations: [],
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,7 +69,7 @@ export const LocationsProvider = ({ children }) => {
               users: items,
             }));
 
-          setData({ locations: sortedData });
+          setData({ locations: processedLocations, sortedLocations: sortedData });
 
           return;
         }
@@ -78,5 +81,5 @@ export const LocationsProvider = ({ children }) => {
     fetchData();
   }, []);
 
-  return <LocationsContext.Provider value={{ data }}>{children}</LocationsContext.Provider>;
+  return <LocationsContext.Provider value={{ ...data }}>{children}</LocationsContext.Provider>;
 };

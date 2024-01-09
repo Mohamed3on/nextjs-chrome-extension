@@ -13,18 +13,18 @@ export type User = {
   location: string;
   lists: string[];
   isFriend: boolean;
-  followers_count: number;
+  followers: number;
   avatar: string;
 };
 
 export const LocationsWrapper = () => {
-  const { data } = useLocationContext();
+  const { sortedLocations } = useLocationContext();
 
   return (
     <div>
-      {data ? (
+      {sortedLocations.length > 0 ? (
         <div className='flex items-center justify-center'>
-          <LocationList {...data} />
+          <LocationList sortedLocations={sortedLocations} />
         </div>
       ) : (
         <Refresh></Refresh>
