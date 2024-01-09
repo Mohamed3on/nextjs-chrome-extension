@@ -1,5 +1,3 @@
-const locationData = {};
-
 const userData = {};
 
 const readLocalStorage = async (key) => {
@@ -134,7 +132,7 @@ const processUser = (user) => {
     name: user.name,
     screen_name: user.screen_name,
     avatar: user.profile_image_url_https.replace('_normal', ''),
-    followers: user.followers_count,
+    followers_count: user.followers_count,
     location: user.location,
   };
 };
@@ -152,12 +150,13 @@ const processUser = (user) => {
       let locationsPerList = {};
       const usersPerList = {};
       for (const listID of listIDs) {
-        console.log('Fetching list members...');
+        console.log(`Fetching ${listID} list members...`);
         const listMembers = await fetchListMembers(listID);
+        console.log(`length of ${listID} list members:`, listMembers.users.length);
         locationsPerList[listID] = addLocations(listMembers.users);
         usersPerList[listID] = listMembers.users.map(processUser);
       }
-      locationData.lists = locationsPerList;
+
       userData.lists = usersPerList;
     }
 
@@ -170,48 +169,11 @@ const processUser = (user) => {
         console.log('error fetching friends:', error);
       }
 
-      locationData.friends = addLocations(friendsList);
       userData.friends = friendsList.map(processUser);
-
-      // const inactiveFriends = friendsList.filter((friend) => {
-      //   // Check if the friend has a status
-      //   if (friend.status) {
-      //     // Convert the last tweet date to a Date object
-      //     const lastTweetDate = new Date(friend.status.created_at);
-
-      //     // Calculate the date 6 months ago from now
-      //     const sixMonthsAgo = new Date();
-      //     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-      //     // Return true if the last tweet date is older than 6 months ago
-      //     return lastTweetDate < sixMonthsAgo;
-      //   }
-
-      //   // If no status, consider the friend inactive
-      //   return true;
-      // });
-
-      // locationData.followers = getLocationsOfUsers(followersList);
-
-      // try {
-      //   await readLocalStorage(`initialUserData`);
-      // } catch (err) {
-      //   console.log('first time running, saving initial location data');
-      //   chrome.storage.local.set(
-      //     {
-      //       initialLocationData: locationData,
-      //       initialUserData: userData,
-      //     },
-      //     function () {
-      //       console.log('Initial location data is saved in local storage.');
-      //     }
-      //   );
-      // }
 
       chrome.storage.local.set(
         {
-          locationData: locationData,
-          userData: userData,
+          userData,
         },
         function () {
           console.log('Location data is saved in local storage.');

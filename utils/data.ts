@@ -77,21 +77,33 @@ const duplicate_mapping = {
   Polska: 'Poland',
   'New York Ny': 'New York',
   'Ma Usa': 'Massachusetts',
+  UAE: 'United Arab Emirates',
+  Wien: 'Vienna',
+  Roma: 'Rome',
+  Köln: 'Cologne',
+  Milano: 'Milan',
+  España: 'Spain',
+  München: 'Munich',
+  'Comunidad De Madrid': 'Madrid',
+  Bengaluru: 'Bangalore',
+  'Sillicon Valley': 'California',
 };
 
 export function consolidateDuplicates(data) {
-  const consolidated_data = {};
-  for (const [key, value] of data) {
-    const mappedKey = duplicate_mapping[key] || key;
-    if (mappedKey in consolidated_data) {
-      consolidated_data[mappedKey] = new Set([...consolidated_data[mappedKey], ...value]);
-    } else {
-      consolidated_data[mappedKey] = value;
-    }
-  }
-  return consolidated_data;
-}
+  const consolidatedData = {};
 
+  for (const [key, valueObj] of Object.entries(data)) {
+    const mappedKey = duplicate_mapping[key] || key;
+
+    if (!consolidatedData[mappedKey]) {
+      consolidatedData[mappedKey] = {};
+    }
+
+    Object.assign(consolidatedData[mappedKey], valueObj);
+  }
+
+  return consolidatedData;
+}
 export const mergeMultipleLocations = (locations) => {
   const mergedLocations = {};
 
@@ -151,42 +163,40 @@ export const processLocation = (location: string) => {
     .split(/\s*(?:via|,|\/|\\|&|\+|\||·|\/\/|\|\||→|•|✈️|➡️)\s*|\s+and\s+/) // Split by delimiters
     .map((l) => {
       if (l.includes('bay area')) {
-        return 'san francisco';
+        return 'california';
       }
       return l.trim();
     })
     .filter((l) => l !== '');
 };
 
-export const processLocations = (
-  users: {
-    location: string;
-  }[]
-) => {
+export const processLocations = (users) => {
   const locations = addLocations(users);
-  const titledLocations = Object.fromEntries(
-    Object.entries(locations).map(([k, v]) => [titleCaseWithAcronyms(k), v])
-  );
+  const titledLocations = {};
 
-  const consolidated = consolidateDuplicates(Object.entries(titledLocations));
+  for (let location in locations) {
+    titledLocations[titleCaseWithAcronyms(location)] = locations[location];
+  }
 
+  const consolidated = consolidateDuplicates(titledLocations);
   return consolidated;
 };
 
 export const addLocations = (theList) => {
   const locations = {};
+
   theList.forEach((member) => {
     if (member.location && member.location !== '') {
       const processedLocations = processLocation(member.location);
 
       processedLocations?.forEach((location) => {
-        if (locations[location]) {
-          locations[location].add(member.screen_name);
-        } else {
-          locations[location] = new Set([member.screen_name]);
+        if (!locations[location]) {
+          locations[location] = {};
         }
+        locations[location][member.screen_name] = member;
       });
     }
   });
+
   return locations;
 };
