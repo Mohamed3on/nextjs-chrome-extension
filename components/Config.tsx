@@ -70,7 +70,7 @@ export const Config = ({
 
   return (
     <div className='flex justify-center items-center'>
-      <Card className='w-full max-w-screen-xl p-4 mx-auto text-gray-200 shadow-lg rounded-lg'>
+      <Card className='w-full p-4 mx-auto text-gray-200 shadow-lg rounded-lg'>
         <CardHeader>
           <CardTitle>Get started</CardTitle>
           <CardDescription>Enter your Twitter handle below.</CardDescription>
@@ -115,7 +115,7 @@ export const Config = ({
               />
             </CardContent>
             <CardFooter>
-              <Button type='submit' className='ml-auto'>
+              <Button type='submit' className='mr-auto'>
                 Save
               </Button>
             </CardFooter>

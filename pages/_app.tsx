@@ -7,8 +7,9 @@ function MyApp({ Component, pageProps }) {
     <div>
       <Head>
         <title>Twitter Friends Mapper</title>
+        <link rel='icon' type='image/svg+xml' href='/logo.svg' />
       </Head>
-      <main className={`font-sans min-h-screen min-w-max bg-background dark`}>
+      <main className={`font-sans min-h-screen min-w-max bg-background dark px-11`}>
         <Component {...pageProps} />
         <Toaster />
       </main>
