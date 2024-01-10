@@ -132,23 +132,10 @@ export const processLocation = (location: string) => {
     return null;
   }
 
-  const matchRegex = /🇪🇺/;
-
-  if (matchRegex.test(lowerCaseLocation)) {
-    console.log('matchRegex', lowerCaseLocation);
-  }
-
   // Remove specific terms
   const removeRegex = /europe|(?:the\s+)?world|🌎|🌍|🌏|🌐|☁️|!/g;
 
   let processedLocation = lowerCaseLocation.replace(removeRegex, '');
-
-  // check for world OR remote OR !
-  const worldRegex = /!/;
-
-  if (worldRegex.test(processedLocation)) {
-    console.log(processedLocation, location, 'check this out');
-  }
 
   // Handle coordinates
   const coords = processedLocation.match(/-?\d+\.\d+,-?\d+\.\d+/g);

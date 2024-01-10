@@ -18,20 +18,17 @@ export default function Home() {
     // Function to handle storage changes
     const handleStorageChange = (changes, areaName) => {
       if (areaName === 'local') {
-        // Update component state based on storage changes
-
-        console.log('Storage change detected', changes);
-
         if (changes.hasOwnProperty('twitterHandle')) {
+          // data is stale here, so we need to fetch it again
           chrome.storage.local.remove('userData');
           const newHandle = changes['twitterHandle'].newValue;
+
+          // runs inject.js to fetch the new data
           window.open(`https://twitter.com/${newHandle}`, '_blank');
         }
 
         if (changes.hasOwnProperty('userData')) {
-          console.log('YES');
-          if (changes['userData'].newValue) {
-            // go to #all_locations in the url
+          if (changes['userData'].hasOwnProperty('newValue')) {
             window.location.hash = 'all_locations';
           }
         }
@@ -77,21 +74,17 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const result = await readLocalStorage(['twitterHandle', 'enableLists']);
+      const result = await readLocalStorage(['twitterHandle', 'enableLists']);
 
-        if (!result?.['twitterHandle']) {
-          setRoute('config');
-          return;
-        }
-
-        setUserDetails({
-          twitterHandle: result?.['twitterHandle'],
-          enableLists: result?.['enableLists'],
-        });
-      } catch (error) {
-        console.log('Twitter handle not set yet');
+      if (!result?.['twitterHandle']) {
+        setRoute('config');
+        return;
       }
+
+      setUserDetails({
+        twitterHandle: result?.['twitterHandle'],
+        enableLists: !!result?.['enableLists'],
+      });
     };
 
     fetchData();

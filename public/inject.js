@@ -172,7 +172,7 @@ const processUser = (user) => {
 
         userData.userListData = await Promise.all(userListData);
 
-        console.log('🚀 ~ getPopularFriendsLocations ~ lists:', userListData);
+        console.log(`fetched ${userData.userListData.length} lists`);
       } catch (error) {
         console.log('error fetching lists:', error);
       }

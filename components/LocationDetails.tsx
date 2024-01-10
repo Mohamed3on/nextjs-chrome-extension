@@ -20,7 +20,6 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
       const images = await GOOGLE_IMG_SCRAP({
         search: locationName,
       });
-      console.log(images.result);
       // get the first image that's taller than 600px:
       const image = images.result.find((image) => image.height > 600);
       setImage(image.url);
