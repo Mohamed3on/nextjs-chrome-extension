@@ -3,7 +3,9 @@ import { UsersMap } from '@/components/LocationsWrapper';
 import React from 'react';
 
 export const Wrapper = ({ children }) => {
-  return <div className='bg-gray-800 text-white p-8 w-full rounded-lg shadow-lg'>{children}</div>;
+  return (
+    <div className='bg-gray-800 text-gray-200 p-8 w-full rounded-lg shadow-lg'>{children}</div>
+  );
 };
 export const LocationList = ({
   sortedLocations,
@@ -13,9 +15,24 @@ export const LocationList = ({
     users: UsersMap;
   }[];
 }) => {
+  const tweetText = `Most of my Twitter friends live in:%0A%0A${sortedLocations
+    .slice(0, 3)
+    .map((location, index) => `${index + 1}. ${location.location}`)
+    .join(
+      '%0A'
+    )}.%0A%0ACheck out where your friends live at https://twitter-friends-location.vercel.app`;
+
   return (
     <Wrapper>
       <h1 className='text-3xl font-semibold mb-6'>Where do your twitter friends live?</h1>
+      <a
+        className='flex items-center justify-center py-3 px-6 mb-6 max-w-sm mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold rounded-md transition duration-300 ease-in-out shadow-lg'
+        href={`https://twitter.com/intent/tweet?text=${tweetText}`}
+        target='_blank'
+        rel='noreferrer'
+      >
+        Tweet The Result!
+      </a>
       <ul className='space-y-4'>
         {sortedLocations.map((location, index) => (
           <li key={index}>
@@ -27,7 +44,7 @@ export const LocationList = ({
             >
               <span className='text-lg  '>{location.location}</span>
               <div className='flex items-center space-x-2'>
-                <span className='text-gray-300 py-1 px-3 text-center text-lg'>
+                <span className='py-1 px-3 text-center text-lg'>
                   {Object.keys(location.users).length}
                 </span>
               </div>
