@@ -11,7 +11,7 @@ export const LocationList = ({
   }[];
 }) => {
   return (
-    <div className='bg-gray-800 text-white p-8 max-w-md mx-auto rounded-lg shadow-lg'>
+    <div className='bg-gray-800 text-white p-8 max-w-screen-xl mx-auto rounded-lg shadow-lg'>
       <h1 className='text-3xl font-semibold mb-6'>Where do your twitter friends live?</h1>
       <ul className='space-y-4'>
         {sortedLocations.map((location, index) => (

@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/use-toast';
 
 import {
   CardTitle,
@@ -27,6 +26,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
+import { Cross1Icon } from '@radix-ui/react-icons';
 
 const formSchema = z.object({
   twitterHandle: z
@@ -48,8 +48,10 @@ const formSchema = z.object({
 
 export const Config = ({
   onDataSubmit,
+  initialData,
 }: {
   onDataSubmit: (data: z.infer<typeof formSchema>) => void;
+  initialData?: z.infer<typeof formSchema>;
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,21 +65,33 @@ export const Config = ({
     },
   });
 
-  const { fields, append } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     name: 'listIDs',
     control: form.control,
   });
 
+  useEffect(() => {
+    // Reset the form with initial data
+    form.reset(initialData);
+
+    // Replace all fields in a single operation
+    const newFields = initialData?.listIDs?.map((item) => ({ value: item.value })) || [
+      { value: '' },
+    ];
+    form.setValue('listIDs', newFields);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData]);
+
   function onSubmit(data: z.infer<typeof formSchema>) {
     onDataSubmit(data);
-    toast('Your username has been saved!', {
+    toast('Your data has been saved!', {
       description: 'head to twitter.com and come back again to see where your friends live!',
     });
   }
 
   return (
-    <main className='flex justify-center items-center h-screen'>
-      <Card className='w-full max-w-md p-4 mx-auto text-gray-200 shadow-lg rounded-lg'>
+    <div className='flex justify-center items-center'>
+      <Card className='w-full max-w-screen-xl p-4 mx-auto text-gray-200 shadow-lg rounded-lg'>
         <CardHeader>
           <CardTitle>Get started</CardTitle>
           <CardDescription>Enter your Twitter handle below.</CardDescription>
@@ -92,7 +106,7 @@ export const Config = ({
                   <FormItem>
                     <FormLabel>Twitter handle</FormLabel>
                     <FormControl>
-                      <Input placeholder='mohamed3on' {...field} />
+                      <Input placeholder='mohamed3on' className='max-w-96' {...field} />
                     </FormControl>
                     <FormDescription>
                       {`This is the twitter username whose friends' locations you want to track
@@ -117,9 +131,14 @@ export const Config = ({
                         <FormDescription className={cn(index !== 0 && 'sr-only')}>
                           Add IDs of lists whose members you also want to track
                         </FormDescription>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
+                        <div className='flex gap-3'>
+                          <FormControl>
+                            <Input className='max-w-96' {...field} />
+                          </FormControl>
+                          <Button variant='destructive' size='icon' onClick={() => remove(index)}>
+                            <Cross1Icon className='h-4 w-4' />
+                          </Button>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -144,6 +163,6 @@ export const Config = ({
           </form>
         </Form>
       </Card>
-    </main>
+    </div>
   );
 };

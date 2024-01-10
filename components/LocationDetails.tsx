@@ -4,6 +4,7 @@ import { useLocationContext } from '@/lib/LocationContext';
 import React, { useEffect } from 'react';
 
 import { GOOGLE_IMG_SCRAP } from 'google-img-scrap';
+import { ArrowLeft } from 'lucide-react';
 
 const formatNumber = (num) => {
   return num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -18,8 +19,10 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
       const images = await GOOGLE_IMG_SCRAP({
         search: locationName,
       });
-
-      setImage(images.result[0].url);
+      console.log(images.result);
+      // get the first image that's taller than 600px:
+      const image = images.result.find((image) => image.height > 600);
+      setImage(image.url);
     };
 
     fetchData();
@@ -36,29 +39,27 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
   const sortedUsers = users.sort((a, b) => b.followers - a.followers);
 
   return (
-    <div className='bg-gray-800 text-white p-8 max-w-md mx-auto rounded-lg shadow-lg '>
+    <div className='bg-gray-800 text-white p-8 max-w-screen-2xl mx-auto rounded-lg shadow-lg '>
       <button
         onClick={() => window.history.back()}
-        className='mb-4 text-white hover:text-gray-300 text-lg'
+        className='flex gap-1 mb-4 items-center text-white hover:text-gray-300 text-lg'
       >
-        &#8592; Back
+        <ArrowLeft></ArrowLeft> <span>Back</span>
       </button>
-      <div
-        className='w-full bg-cover bg-center h-64 text-white py-24 px-10 object-fill mb-3 rounded-md'
-        style={{ backgroundImage: `url(${image})`, backgroundSize: 'cover' }}
-      ></div>
+      <img src={image} alt={locationName} className='w-full h-64 mb-3 rounded-md object-cover' />
+
       <h1 className='text-3xl font-semibold mb-6'>Friends in {locationName}</h1>
       <ul className='space-y-4'>
         {sortedUsers.map((user, index) => (
           <li
             key={index}
-            className='flex justify-between items-center p-4 bg-gray-700 rounded-lg shadow-xl'
+            className='flex justify-between items-center p-4 bg-gray-700 rounded-lg shadow-xl text-base'
           >
             <div className='flex items-center space-x-2'>
               <Avatar>
                 <AvatarImage src={user.avatar} />
               </Avatar>
-              <div className='flex flex-col sm:flex-row'>
+              <div className='flex flex-col'>
                 {user.isFriend && <span className='text-sm text-green-400'>Following</span>}
                 <a
                   href={`https://twitter.com/${user.screen_name}`}

@@ -15,46 +15,53 @@ const readLocalStorage = async (key) => {
 const bearerToken =
   'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA';
 
-const fetchListMembers = async (listID) => {
-  const url = `https://api.twitter.com/1.1/lists/members.json?list_id=${listID}&count=5000`;
+const alternativeBearerToken =
+  'AAAAAAAAAAAAAAAAAAAAAFQODgEAAAAAVHTp76lzh3rFzcHbmHVvQxYYpTw%3DckAlMINMjmCwxUcaXbAN4XqJVdgMJaHqNOFgPMK0zN1qLqLQCF';
+
+const makeTwitterApiRequest = async (url, useAlternativeToken = false) => {
+  const token = useAlternativeToken ? alternativeBearerToken : bearerToken;
+
   const response = await fetch(url, {
     method: 'GET',
     headers: {
-      Authorization: `Bearer ${bearerToken}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
   });
-  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-  return await response.json();
+
+  if (!response.ok) {
+    if (response.status === 429 && !useAlternativeToken) {
+      console.log('Rate limit exceeded with primary token, trying alternative token...');
+      return makeTwitterApiRequest(url, true);
+    } else {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  }
+
+  return response.json();
+};
+
+const fetchUserLists = async (screen_name) => {
+  const url = `https://api.twitter.com/1.1/lists/list.json?screen_name=${screen_name}`;
+  return makeTwitterApiRequest(url);
+};
+
+const fetchListMembers = async (listID) => {
+  const url = `https://api.twitter.com/1.1/lists/members.json?list_id=${listID}&count=5000`;
+  return makeTwitterApiRequest(url);
 };
 
 const fetchFollowingList = async (screen_name) => {
   let allFriends = [];
-  let cursor = -1; // Twitter API uses -1 to start
+  let cursor = -1;
 
   do {
     const url = `https://api.twitter.com/1.1/friends/list.json?screen_name=${screen_name}&count=200&cursor=${cursor}`;
+    const data = await makeTwitterApiRequest(url);
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${bearerToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      console.error('HTTP error! status: ', response.status);
-      if (response.status === 429) {
-        console.log('Rate limit exceeded, waiting 15 minutes...');
-        await new Promise((resolve) => setTimeout(resolve, 15 * 60 * 1000));
-      }
-    }
-
-    const data = await response.json();
     allFriends = allFriends.concat(data.users);
-    cursor = data.next_cursor; // Update the cursor for the next iteration
-  } while (cursor !== 0); // The API returns 0 when there are no more pages
+    cursor = data.next_cursor;
+  } while (cursor !== 0);
 
   return allFriends;
 };
@@ -165,11 +172,36 @@ const processUser = (user) => {
       let friendsList = [];
       try {
         friendsList = await fetchFollowingList(screen_name);
+        userData.friends = friendsList.map(processUser);
       } catch (error) {
         console.log('error fetching friends:', error);
       }
 
-      userData.friends = friendsList.map(processUser);
+      let userLists = [];
+      try {
+        userLists = await fetchUserLists(screen_name);
+
+        const userListData = await userLists.map(async (list) => {
+          const listMemebers = await fetchListMembers(list.id_str);
+
+          return {
+            name: list.name,
+            id: list.id_str,
+            follower_count: list.subscriber_count,
+            member_count: list.member_count,
+            creator: list.user.screen_name,
+            avatar: list.user.profile_image_url_https.replace('_normal', ''),
+            url: `https://twitter.com/i/lists/${list.id_str}`,
+            users: listMemebers.users.map(processUser),
+          };
+        });
+
+        userData.userListData = await Promise.all(userListData);
+
+        console.log('🚀 ~ getPopularFriendsLocations ~ lists:', userLists);
+      } catch (error) {
+        console.log('error fetching lists:', error);
+      }
 
       chrome.storage.local.set(
         {
