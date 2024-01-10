@@ -123,17 +123,6 @@ const addLocations = (theList) => {
   return locations;
 };
 
-const getListIDs = async () => {
-  let listIDs;
-  try {
-    listIDs = await readLocalStorage('listIDs');
-    return listIDs;
-  } catch (error) {
-    console.log('No list IDs were provided, skipping list data', error);
-    return [];
-  }
-};
-
 const processUser = (user) => {
   return {
     name: user.name,
@@ -146,25 +135,10 @@ const processUser = (user) => {
 
 (async () => {
   try {
-    let listIDs = await getListIDs();
-
     const screen_name = await readLocalStorage('twitterHandle');
 
     if (!screen_name) {
       throw new Error('No twitter handle was provided');
-    }
-    if (listIDs) {
-      let locationsPerList = {};
-      const usersPerList = {};
-      for (const listID of listIDs) {
-        console.log(`Fetching ${listID} list members...`);
-        const listMembers = await fetchListMembers(listID);
-        console.log(`length of ${listID} list members:`, listMembers.users.length);
-        locationsPerList[listID] = addLocations(listMembers.users);
-        usersPerList[listID] = listMembers.users.map(processUser);
-      }
-
-      userData.lists = usersPerList;
     }
 
     const getPopularFriendsLocations = async () => {
@@ -198,7 +172,7 @@ const processUser = (user) => {
 
         userData.userListData = await Promise.all(userListData);
 
-        console.log('🚀 ~ getPopularFriendsLocations ~ lists:', userLists);
+        console.log('🚀 ~ getPopularFriendsLocations ~ lists:', userListData);
       } catch (error) {
         console.log('error fetching lists:', error);
       }

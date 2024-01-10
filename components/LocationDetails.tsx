@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 
 import { GOOGLE_IMG_SCRAP } from 'google-img-scrap';
 import { ArrowLeft } from 'lucide-react';
+import { Wrapper } from '@/components/LocationList';
 
 const formatNumber = (num) => {
   return num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -39,7 +40,7 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
   const sortedUsers = users.sort((a, b) => b.followers - a.followers);
 
   return (
-    <div className='bg-gray-800 text-white p-8 max-w-screen-2xl mx-auto rounded-lg shadow-lg '>
+    <Wrapper>
       <button
         onClick={() => window.history.back()}
         className='flex gap-1 mb-4 items-center text-white hover:text-gray-300 text-lg'
@@ -86,6 +87,6 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
           </li>
         ))}
       </ul>
-    </div>
+    </Wrapper>
   );
 };

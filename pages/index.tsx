@@ -24,12 +24,15 @@ export default function Home() {
 
         if (changes.hasOwnProperty('twitterHandle')) {
           chrome.storage.local.remove('userData');
+          const newHandle = changes['twitterHandle'].newValue;
+          window.open(`https://twitter.com/${newHandle}`, '_blank');
         }
 
         if (changes.hasOwnProperty('userData')) {
           console.log('YES');
           if (changes['userData'].newValue) {
-            setRoute('all_locations');
+            // go to #all_locations in the url
+            window.location.hash = 'all_locations';
           }
         }
         setStorageData((prevData) => ({
@@ -75,11 +78,16 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const result = await readLocalStorage(['twitterHandle', 'listIDs']);
+        const result = await readLocalStorage(['twitterHandle', 'enableLists']);
+
+        if (!result?.['twitterHandle']) {
+          setRoute('config');
+          return;
+        }
 
         setUserDetails({
           twitterHandle: result?.['twitterHandle'],
-          listIDs: result?.['listIDs'] || [],
+          enableLists: result?.['enableLists'],
         });
       } catch (error) {
         console.log('Twitter handle not set yet');
@@ -98,7 +106,7 @@ export default function Home() {
             userDetails
               ? {
                   twitterHandle: userDetails?.twitterHandle,
-                  listIDs: userDetails?.listIDs.map((listID) => ({ value: listID })),
+                  enableLists: userDetails?.enableLists,
                 }
               : undefined
           }
@@ -126,19 +134,17 @@ export default function Home() {
 
   const onSubmit = ({
     twitterHandle,
-    listIDs,
+    enableLists,
   }: {
     twitterHandle: string;
-    listIDs: { value: string }[];
+    enableLists: boolean;
   }) => {
     const data = {
       twitterHandle,
-      listIDs: listIDs.map((list) => list.value),
+      enableLists,
     };
     setUserDetails(data);
     chrome.storage.local.set(data);
-
-    window.open(`https://twitter.com/${twitterHandle}`, '_blank');
   };
 
   return (

@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
 import { Cross1Icon } from '@radix-ui/react-icons';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
   twitterHandle: z
@@ -35,15 +36,7 @@ const formSchema = z.object({
     })
     .min(2)
     .max(50),
-  listIDs: z
-    .array(
-      z.object({
-        value: z.string().refine((val) => /^\d+$/.test(val), {
-          message: 'List IDs must be strings of numbers only.',
-        }),
-      })
-    )
-    .optional(),
+  enableLists: z.boolean(),
 });
 
 export const Config = ({
@@ -57,28 +50,14 @@ export const Config = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       twitterHandle: '',
-      listIDs: [
-        {
-          value: '',
-        },
-      ],
+      enableLists: true,
     },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    name: 'listIDs',
-    control: form.control,
   });
 
   useEffect(() => {
     // Reset the form with initial data
     form.reset(initialData);
 
-    // Replace all fields in a single operation
-    const newFields = initialData?.listIDs?.map((item) => ({ value: item.value })) || [
-      { value: '' },
-    ];
-    form.setValue('listIDs', newFields);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
 
@@ -117,43 +96,23 @@ export const Config = ({
                 )}
               />
 
-              <div>
-                {fields.map((field, index) => (
-                  <FormField
-                    control={form.control}
-                    key={field.id}
-                    name={`listIDs.${index}.value`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className={cn(index !== 0 && 'sr-only')}>
-                          List IDs (Optional)
-                        </FormLabel>
-                        <FormDescription className={cn(index !== 0 && 'sr-only')}>
-                          Add IDs of lists whose members you also want to track
-                        </FormDescription>
-                        <div className='flex gap-3'>
-                          <FormControl>
-                            <Input className='max-w-96' {...field} />
-                          </FormControl>
-                          <Button variant='destructive' size='icon' onClick={() => remove(index)}>
-                            <Cross1Icon className='h-4 w-4' />
-                          </Button>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
-                <Button
-                  type='button'
-                  variant='outline'
-                  size='sm'
-                  className='mt-2'
-                  onClick={() => append({ value: '' })}
-                >
-                  Add List ID
-                </Button>
-              </div>
+              <FormField
+                control={form.control}
+                name='enableLists'
+                render={({ field }) => (
+                  <FormItem className='flex flex-row items-start space-x-3 space-y-0 shadow'>
+                    <FormControl>
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                    <div className='space-y-1 leading-none'>
+                      <FormLabel>Include your lists in the analysis</FormLabel>
+                      <FormDescription>
+                        Includes members if lists you created or subscribed to in the analysis.
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
             </CardContent>
             <CardFooter>
               <Button type='submit' className='ml-auto'>

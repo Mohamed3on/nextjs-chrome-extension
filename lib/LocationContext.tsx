@@ -24,30 +24,25 @@ export const LocationsProvider = ({ children }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const result = await readLocalStorage(['userData', 'listIDs']);
+        const result = await readLocalStorage(['userData', 'enableLists']);
 
         if (result?.['userData']) {
-          const listUsers = result?.['userData']['lists'];
+          const userListData = result?.['userData']['userListData'];
           const friends = result?.['userData']['friends'];
 
           // Initialize an empty object to store user data
           let usersMap = {};
 
-          // Process each list and its users
-          if (listUsers) {
-            const listIDs = result?.['listIDs'] || [];
-            for (let listID in listUsers) {
-              if (!listIDs.includes(listID)) {
-                continue;
-              }
-              listUsers[listID].forEach((user) => {
+          if (userListData && result?.['enableLists']) {
+            userListData.forEach((list) =>
+              list.users.forEach((user) => {
                 if (!usersMap[user.screen_name]) {
-                  usersMap[user.screen_name] = { ...user, lists: [listID], isFriend: false };
+                  usersMap[user.screen_name] = { ...user, lists: [list.name], isFriend: false };
                 } else {
-                  usersMap[user.screen_name].lists.push(listID);
+                  usersMap[user.screen_name].lists.push(list.name);
                 }
-              });
-            }
+              })
+            );
           }
 
           // Process friends
