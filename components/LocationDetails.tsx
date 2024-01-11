@@ -51,38 +51,46 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
       <h1 className='text-3xl font-semibold mb-6'>Friends in {locationName}</h1>
       <ul className='space-y-4'>
         {sortedUsers.map((user, index) => (
-          <li
-            key={index}
-            className='flex justify-between items-center p-4 bg-gray-700 rounded-lg shadow-xl text-base'
-          >
-            <div className='flex items-center space-x-2'>
-              <Avatar>
-                <AvatarImage src={user.avatar} />
-              </Avatar>
-              <div className='flex flex-col'>
-                {user.isFriend && <span className='text-sm text-green-400'>Following</span>}
-                <a
-                  href={`https://twitter.com/${user.screen_name}`}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='text-lg text-blue-400 hover:text-blue-300 active:text-blue-500'
-                >
-                  {user.name}
-                </a>
-              </div>
-            </div>
-            <div className='flex flex-col items-end'>
-              {user.lists.length > 0 && (
-                <div className='flex items-center mb-4'>
-                  <span className='text-gray-300 mr-2'>Lists:</span>
-                  <span className='text-white'>{user.lists.length}</span>
+          <li key={index}>
+            <a
+              href={`https://twitter.com/${user.screen_name}`}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='flex justify-between items-center p-4  rounded-lg shadow-xl text-base bg-gray-700 hover:bg-gray-300 hover:text-gray-900 active:bg-gray-500 transition-colors ease-in-out'
+            >
+              <div className='flex items-center space-x-2'>
+                <Avatar>
+                  <AvatarImage src={user.avatar} />
+                </Avatar>
+                <div className='flex flex-col'>
+                  {user.isFriend && (
+                    <span
+                      className='text-sm text-green-400
+                  hover:text-green-300 active:text-green-500
+
+                  '
+                    >
+                      Following
+                    </span>
+                  )}
+                  <div className='flex gap-2 items-center'>
+                    <span className='text-lg text-blue-400 hover:text-blue-300 active:text-blue-500'>
+                      {user.name}
+                    </span>
+                    <span className='text-gray-400'>{`@${user.screen_name}`}</span>
+                  </div>
                 </div>
-              )}
-              <div className='flex items-center'>
-                <span className='text-gray-300 mr-2'>Followers:</span>
-                <span className='text-white'>{formatNumber(user.followers)}</span>
               </div>
-            </div>
+              <div className='flex flex-col items-end'>
+                <div className='flex items-center'>
+                  <span>{formatNumber(user.followers)}</span>
+                  <span className=' ml-1'>Followers</span>
+                </div>
+                <div className='flex items-center'>
+                  <span className=' ml-1'>{user.location}</span>
+                </div>
+              </div>
+            </a>
           </li>
         ))}
       </ul>

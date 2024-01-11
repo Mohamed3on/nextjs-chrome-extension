@@ -26,7 +26,8 @@ export const LocationList = ({
     <Wrapper>
       <h1 className='text-3xl font-semibold mb-6'>Where do your twitter friends live?</h1>
       <a
-        className='flex items-center justify-center py-3 px-6 mb-6 max-w-sm mx-auto bg-blue-500 hover:bg-blue-700 text-white font-bold rounded-md transition duration-300 ease-in-out shadow-lg'
+        className='flex items-center justify-center py-3 px-6 mb-6 max-w-sm mx-auto bg-blue-500 hover:bg-blue-700 active:bg-blue-900
+        text-white  rounded-md ease-in-out shadow-lg'
         href={`https://twitter.com/intent/tweet?text=${tweetText}`}
         target='_blank'
         rel='noreferrer'
@@ -42,7 +43,10 @@ export const LocationList = ({
 
               active:bg-gray-500 transition-colors ease-in-out flex justify-between items-center p-4 bg-gray-700 rounded-lg shadow-xl'
             >
-              <span className='text-lg  '>{location.location}</span>
+              <div>
+                <span className='text-lg mr-1'>#{index + 1}</span>
+                <span className='text-lg'>{location.location}</span>
+              </div>
               <div className='flex items-center space-x-2'>
                 <span className='py-1 px-3 text-center text-lg'>
                   {Object.keys(location.users).length}
