@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Twitter Friend Mapper",
-  "short_name": "twitterFriendMapper",
+  "name": "X (Twitter) Friend Locations",
+  "short_name": "twitterFriendLocations",
   "version": "1.0.0",
-  "description": "Find where your twitter friends are located",
+  "description": "Find out where your X (formerly Twitter) friends are located",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -11,7 +11,7 @@
     "128": "icons/icon128.png"
   },
 
-  "permissions": ["storage", "geolocation"],
+  "permissions": ["storage"],
   "content_scripts": [
     {
       "matches": ["https://*.twitter.com/*"],
