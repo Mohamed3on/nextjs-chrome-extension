@@ -78,9 +78,10 @@ export function Home() {
     enableLists: boolean;
   }) => {
     const data = {
-      twitterHandle,
+      twitterHandle: twitterHandle.replace('@', ''),
       enableLists,
     };
+
     setLocalStorage(data);
   };
 
