@@ -87,6 +87,11 @@ const duplicate_mapping = {
   'Comunidad De Madrid': 'Madrid',
   Bengaluru: 'Bangalore',
   'Sillicon Valley': 'California',
+  Nederland: 'Netherlands',
+  NL: 'Netherlands',
+  '🇳🇱': 'Netherlands',
+  'The Netherlands': 'Netherlands',
+  Québec: 'Quebec',
 };
 
 export function consolidateDuplicates(data) {
@@ -104,21 +109,6 @@ export function consolidateDuplicates(data) {
 
   return consolidatedData;
 }
-export const mergeMultipleLocations = (locations) => {
-  const mergedLocations = {};
-
-  locations.forEach((location) => {
-    Object.entries(location).forEach(([key, value]) => {
-      if (mergedLocations[key]) {
-        mergedLocations[key] += value;
-      } else {
-        mergedLocations[key] = value;
-      }
-    });
-  });
-
-  return mergedLocations;
-};
 
 export const processLocation = (location: string) => {
   const lowerCaseLocation = location.toLowerCase();

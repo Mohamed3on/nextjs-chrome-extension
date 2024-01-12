@@ -5,13 +5,35 @@ export const Refresh = () => {
   const [progress, setProgress] = React.useState(13);
 
   React.useEffect(() => {
-    const timer = setTimeout(() => setProgress(66), 10);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => {
+      setProgress(33);
+    }, 1000);
+    const timer2 = setTimeout(() => {
+      setProgress(66);
+    }, 3000);
+
+    const timer3 = setTimeout(() => {
+      setProgress(100);
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
   }, []);
 
   return (
-    <div className='flex items-center justify-center'>
+    <div className='flex items-center justify-center flex-col gap-7'>
       <Progress value={progress} className='w-[60%]' />
+
+      <h1 className='text-2xl font-bold text-center text-gray-400'>
+        The more people you follow, the longer this may take
+      </h1>
+
+      <h2 className='text-xl font-bold text-center text-gray-500'>
+        Please wait while we fetch your data (and don&apos;t close the twitter tab we opened!)
+      </h2>
     </div>
   );
 };

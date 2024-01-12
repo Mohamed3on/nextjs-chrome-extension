@@ -7,14 +7,19 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocationContext } from '@/lib/LocationContext';
+import { useStorageContext } from '@/lib/StorageContext';
 
 import React from 'react';
 
 const ListsSection = () => {
-  const { userListData, areListsEnabled } = useLocationContext();
+  const { userListData } = useLocationContext();
+
+  const {
+    storageData: { enableLists },
+  } = useStorageContext();
   if (userListData.length === 0) return null;
 
-  if (!areListsEnabled) {
+  if (!enableLists) {
     return (
       <div className='mb-4'>
         <p className='text-center text-gray-500'>
@@ -28,7 +33,7 @@ const ListsSection = () => {
     );
   }
   return (
-    <Accordion type='single' collapsible>
+    <Accordion type='single' collapsible className='mb-3'>
       <AccordionItem value='item-1'>
         <AccordionTrigger className='justify-start gap-2'>Included lists</AccordionTrigger>
         <AccordionContent>
@@ -55,7 +60,7 @@ export const Wrapper = ({ children }) => {
   return <div className=' text-gray-200 p-8 w-full rounded-lg shadow-lg'>{children}</div>;
 };
 export const LocationList = () => {
-  const { sortedLocations, userListData, areListsEnabled } = useLocationContext();
+  const { sortedLocations } = useLocationContext();
 
   const tweetText = `Most of my Twitter friends live in:%0A%0A${sortedLocations
     .slice(0, 3)

@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { readLocalStorage } from '@/utils/localStorage';
 import { User, UsersMap } from '@/components/LocationsWrapper';
 import { processLocations } from '@/utils/data';
+import { useStorageContext } from '@/lib/StorageContext';
 
 export const LocationsContext = createContext(null);
 
@@ -27,7 +27,6 @@ export type LocationsContextProps = {
     avatar: string;
     id: string;
   }[];
-  areListsEnabled?: boolean;
 };
 
 export const LocationsProvider = ({ children }) => {
@@ -36,25 +35,26 @@ export const LocationsProvider = ({ children }) => {
     sortedLocations: [],
     userListData: [],
   });
+  const {
+    storageData: { userData, enableLists },
+  } = useStorageContext();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const result = await readLocalStorage(['userData', 'enableLists']);
-
-        if (result?.['userData']) {
+        if (userData) {
           const userListData: {
             name: string;
             users: User[];
             avatar: string;
             id: string;
-          }[] = result?.['userData']['userListData'];
-          const friends = result?.['userData']['friends'];
+          }[] = userData?.['userListData'];
+          const friends = userData?.['friends'];
 
           // Initialize an empty object to store user data
           let usersMap = {};
 
-          if (userListData && result?.['enableLists']) {
+          if (userListData && enableLists) {
             userListData.forEach((list) =>
               list.users.forEach((user) => {
                 if (!usersMap[user.screen_name]) {
@@ -94,11 +94,16 @@ export const LocationsProvider = ({ children }) => {
           setData({
             locations: processedLocations,
             sortedLocations: sortedData,
-            userListData,
-            areListsEnabled: result?.['enableLists'],
+            userListData: userListData || [],
           });
 
           return;
+        } else {
+          setData({
+            locations: {},
+            sortedLocations: [],
+            userListData: [],
+          });
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -106,7 +111,7 @@ export const LocationsProvider = ({ children }) => {
     };
 
     fetchData();
-  }, []);
+  }, [enableLists, userData]);
 
   return <LocationsContext.Provider value={{ ...data }}>{children}</LocationsContext.Provider>;
 };

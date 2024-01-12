@@ -1,59 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Config } from '../components/Config';
 import { LocationDetails } from '@/components/LocationDetails'; // Import LocationDetails
-import { readLocalStorage } from '../utils/localStorage';
 import { LocationsWrapper } from '@/components/LocationsWrapper';
 import { LocationsProvider } from '@/lib/LocationContext';
 import { NavBar } from '@/components/ui/NavBar';
-import { toast } from 'sonner';
+import { StorageProvider, useStorageContext } from '@/lib/StorageContext';
 
-declare const chrome: any;
-
-export default function Home() {
-  const [userDetails, setUserDetails] = useState(null);
+export function Home() {
   const [route, setRoute] = useState('');
 
-  const [storageData, setStorageData] = useState({}); // State to hold storage data
-
-  useEffect(() => {
-    // Function to handle storage changes
-    const handleStorageChange = (changes, areaName) => {
-      if (areaName === 'local') {
-        if (changes.hasOwnProperty('twitterHandle')) {
-          toast('Your data has been saved!', {
-            description: 'head to twitter.com and come back again to see where your friends live!',
-          });
-          // data is stale here, so we need to fetch it again
-          chrome.storage.local.remove('userData');
-          const newHandle = changes['twitterHandle'].newValue;
-
-          // runs inject.js to fetch the new data
-          window.open(`https://twitter.com/${newHandle}`, '_blank');
-        }
-
-        if (changes.hasOwnProperty('userData')) {
-          if (changes['userData'].hasOwnProperty('newValue')) {
-            window.location.hash = 'all_locations';
-          }
-        }
-        setStorageData((prevData) => ({
-          ...prevData,
-          ...Object.keys(changes).reduce((acc, key) => {
-            acc[key] = changes[key].newValue;
-            return acc;
-          }, {}),
-        }));
-      }
-    };
-
-    // Add storage change listener
-    chrome.storage.onChanged.addListener(handleStorageChange);
-
-    // Cleanup function to remove the listener
-    return () => {
-      chrome.storage.onChanged.removeListener(handleStorageChange);
-    };
-  }, []);
+  const {
+    storageData: { twitterHandle, enableLists, userData },
+    setLocalStorage,
+  } = useStorageContext();
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -76,34 +35,16 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const result = await readLocalStorage(['twitterHandle', 'enableLists']);
-
-      if (!result?.['twitterHandle']) {
-        setRoute('config');
-        return;
-      }
-
-      setUserDetails({
-        twitterHandle: result?.['twitterHandle'],
-        enableLists: result?.['enableLists'],
-      });
-    };
-
-    fetchData();
-  }, []);
-
   const renderContentBasedOnRoute = () => {
-    if (route === 'config' || !userDetails) {
+    if (route === 'config' || !twitterHandle) {
       return (
         <Config
           onDataSubmit={onSubmit}
           initialData={
-            userDetails
+            twitterHandle
               ? {
-                  twitterHandle: userDetails?.twitterHandle,
-                  enableLists: userDetails?.enableLists,
+                  twitterHandle,
+                  enableLists,
                 }
               : undefined
           }
@@ -120,7 +61,7 @@ export default function Home() {
       );
     }
 
-    if (userDetails || route === 'all_locations') {
+    if (userData || route === 'all_locations') {
       return (
         <LocationsProvider>
           <LocationsWrapper />
@@ -140,14 +81,21 @@ export default function Home() {
       twitterHandle,
       enableLists,
     };
-    setUserDetails(data);
-    chrome.storage.local.set(data);
+    setLocalStorage(data);
   };
 
   return (
     <div className='bg-background relative flex min-h-screen flex-col'>
-      <NavBar userName={userDetails?.twitterHandle ? `@${userDetails?.twitterHandle}` : 'Config'} />
+      <NavBar userName={twitterHandle ? `@${twitterHandle}` : 'Config'} />
       {renderContentBasedOnRoute()}
     </div>
   );
 }
+
+const WithStorage = () => (
+  <StorageProvider>
+    <Home />
+  </StorageProvider>
+);
+
+export default WithStorage;

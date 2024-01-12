@@ -25,6 +25,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   twitterHandle: z
@@ -60,6 +61,7 @@ export const Config = ({
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     onDataSubmit(data);
+    toast('Your settings have been saved!');
     window.location.hash = 'all_locations';
   }
 
@@ -83,8 +85,8 @@ export const Config = ({
                       <Input placeholder='mohamed3on' className='max-w-96' {...field} />
                     </FormControl>
                     <FormDescription>
-                      {`This is the twitter username whose friends' locations you want to track
-                      (Usually that's yours)`}
+                      Note: when you input a handle for the first time, we will need to load Twitter
+                      to fetch your data. This might take a few seconds.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
