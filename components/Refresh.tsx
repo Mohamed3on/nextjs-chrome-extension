@@ -32,7 +32,7 @@ export const Refresh = () => {
       </h1>
 
       <h2 className='text-xl font-bold text-center text-gray-500'>
-        Please wait while we fetch your data (and don&apos;t close the twitter tab we opened!)
+        Please wait while we fetch your data (and don&apos;t close the open twitter tab!)
       </h2>
     </div>
   );

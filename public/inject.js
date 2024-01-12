@@ -1,5 +1,18 @@
 const userData = {};
 
+chrome.runtime.onMessage.addListener(({ message }, sender, sendResponse) => {
+  if (message === 'refresh') {
+    run()
+      .then(() => {
+        sendResponse({ message: 'done' });
+      })
+      .catch((error) => {
+        sendResponse({ message: 'error', error });
+      });
+  }
+  return true;
+});
+
 const readLocalStorage = async (key) => {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get([key], function (result) {
@@ -66,34 +79,6 @@ const fetchFollowingList = async (screen_name) => {
   return allFriends;
 };
 
-// const fetchFollowersList = async (screen_name) => {
-//   let allFollowers = [];
-//   let cursor = -1; // Twitter API uses -1 to start
-
-//   do {
-//     const url = `https://api.twitter.com/1.1/followers/list.json?screen_name=${screen_name}&count=200&cursor=${cursor}`;
-//     const response = await fetch(url, {
-//       method: 'GET',
-//       headers: {
-//         Authorization: `Bearer ${bearerToken}`,
-//         'Content-Type': 'application/json',
-//       },
-//     });
-
-//     if (!response.ok) {
-//       console.error('HTTP error! status: ', response.status);
-//       return allFollowers;
-//     }
-
-//     const data = await response.json();
-//     allFollowers = allFollowers.concat(data.users);
-
-//     cursor = data.next_cursor; // Update the cursor for the next iteration
-//   } while (cursor !== 0); // The API returns 0 when there are no more pages
-
-//   return allFollowers;
-// };
-
 const processLocation = (location) => {
   const processedLocations = location
     .toLowerCase()
@@ -133,7 +118,7 @@ const processUser = (user) => {
   };
 };
 
-(async () => {
+const run = async () => {
   try {
     const screen_name = await readLocalStorage('twitterHandle');
 
@@ -191,4 +176,8 @@ const processUser = (user) => {
   } catch (error) {
     console.error('Error fetching data:', error);
   }
+};
+
+(async () => {
+  await run();
 })();

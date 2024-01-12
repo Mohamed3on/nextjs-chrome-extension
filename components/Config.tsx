@@ -27,6 +27,8 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 
+declare const chrome: any;
+
 const formSchema = z.object({
   twitterHandle: z
     .string({

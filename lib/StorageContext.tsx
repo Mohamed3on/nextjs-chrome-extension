@@ -50,9 +50,11 @@ export const StorageProvider = ({ children }) => {
       // Handle changes
       if (areaName === 'local') {
         if (changes.hasOwnProperty('twitterHandle')) {
+          // send refresh message to inject.js running on twitter.com
+
           toast('Please wait while we fetch your data', {
             description:
-              'This might take a few seconds. Please do not close the twitter tab in the meantime',
+              'This might take a few seconds. Please do not close the open twitter tab in the meantime',
             duration: 5000,
             dismissible: true,
           });
@@ -61,14 +63,20 @@ export const StorageProvider = ({ children }) => {
           const newHandle = changes['twitterHandle'].newValue;
 
           if (newHandle) {
-            // runs inject.js to fetch the new data
-            window.open(`https://twitter.com/${newHandle}`, '_blank');
+            chrome.tabs.query({ currentWindow: true }, function (tabs) {
+              const correctTab = tabs.find((tab) => tab.url.includes('twitter.com'));
+              if (correctTab)
+                chrome.tabs.sendMessage(correctTab.id, { message: 'refresh' }, function (response) {
+                  console.log(response);
+                });
+              // runs inject.js to fetch the new data
+              else window.open(`https://twitter.com/${newHandle}`, '_blank');
+            });
           }
         }
 
         if (changes.hasOwnProperty('userData')) {
           if (changes['userData'].hasOwnProperty('newValue')) {
-            console.log('new data');
             window.location.hash = 'all_locations';
           }
         }
