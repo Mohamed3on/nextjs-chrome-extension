@@ -24,7 +24,10 @@ const ListsSection = () => {
       <div className='mb-4'>
         <p className='text-center text-gray-500'>
           Tip: You can include your lists in the results by enabling them in the{' '}
-          <a href='#config' className='text-blue-500 hover:underline'>
+          <a
+            href='#config'
+            className='text-blue-500 hover:underline hover:text-blue-100 transition-colors ease-in-out'
+          >
             config
           </a>
           .
@@ -50,7 +53,10 @@ const ListsSection = () => {
               </div>
             ))}
           </div>
-          <a href='#config' className='text-blue-500 hover:underline mt-2'>
+          <a
+            href='#config'
+            className='text-blue-500 hover:underline hover:text-blue-100 transition-colors ease-in-out mt-2'
+          >
             Want to exclude them?
           </a>
         </AccordionContent>

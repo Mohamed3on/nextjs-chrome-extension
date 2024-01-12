@@ -17,14 +17,6 @@ export const NavBar = ({ userName }: { userName: string }) => {
         <ul className='flex space-x-4 text-base'>
           <li>
             <a
-              href='#all_locations'
-              className='hover:text-foreground/80 text-foreground/60 cursor-pointer transition-colors ease-in-out duration-300'
-            >
-              Locations
-            </a>
-          </li>
-          <li>
-            <a
               href='#config'
               className='hover:text-foreground/80 text-foreground/60 transition-colors ease-in-out duration-300'
             >

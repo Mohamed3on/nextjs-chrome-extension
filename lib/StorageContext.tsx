@@ -76,7 +76,7 @@ export const StorageProvider = ({ children }) => {
         }
 
         if (changes.hasOwnProperty('userData')) {
-          if (changes['userData'].hasOwnProperty('newValue')) {
+          if (!changes['userData'].hasOwnProperty('newValue')) {
             window.location.hash = 'all_locations';
           }
         }

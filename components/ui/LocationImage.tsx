@@ -32,14 +32,7 @@ const LocationImage = ({
     return <div>Loading...</div>; // Or any other placeholder content
   }
 
-  return (
-    <img
-      loading='lazy'
-      src={image}
-      alt={locationName}
-      className={cn('w-full object-cover', className)}
-    />
-  );
+  return <img src={image} alt={locationName} className={cn('w-full object-cover', className)} />;
 };
 
 export default LocationImage;
