@@ -50,6 +50,9 @@ const ListsSection = () => {
               </div>
             ))}
           </div>
+          <a href='#config' className='text-blue-500 hover:underline mt-2'>
+            Want to exclude them?
+          </a>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
