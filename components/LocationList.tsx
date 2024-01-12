@@ -1,20 +1,62 @@
-import { UsersMap } from '@/components/LocationsWrapper';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useLocationContext } from '@/lib/LocationContext';
 
 import React from 'react';
 
-export const Wrapper = ({ children }) => {
+const ListsSection = () => {
+  const { userListData, areListsEnabled } = useLocationContext();
+  if (userListData.length === 0) return null;
+
+  if (!areListsEnabled) {
+    return (
+      <div className='mb-4'>
+        <p className='text-center text-gray-500'>
+          Tip: You can include your lists in the results by enabling them in the{' '}
+          <a href='#config' className='text-blue-500 hover:underline'>
+            config
+          </a>
+          .
+        </p>
+      </div>
+    );
+  }
   return (
-    <div className='bg-gray-800 text-gray-200 p-8 w-full rounded-lg shadow-lg'>{children}</div>
+    <Accordion type='single' collapsible>
+      <AccordionItem value='item-1'>
+        <AccordionTrigger className='justify-start gap-2'>Included lists</AccordionTrigger>
+        <AccordionContent>
+          <div className='flex flex-row items-center space-x-3 mb-4'>
+            {userListData.map((list) => (
+              <div key={list.id} className='flex items-center'>
+                <div className='rounded-full bg-gray-200  p-1 flex justify-between items-center gap-1 pr-2'>
+                  <Avatar className='h-6 w-6'>
+                    <AvatarImage src={list.avatar} />
+                    <AvatarFallback>TTF</AvatarFallback>
+                  </Avatar>
+                  <span className='text-sm font-semibold text-gray-800'>{list.name}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 };
-export const LocationList = ({
-  sortedLocations,
-}: {
-  sortedLocations: {
-    location: string;
-    users: UsersMap;
-  }[];
-}) => {
+
+export const Wrapper = ({ children }) => {
+  return <div className=' text-gray-200 p-8 w-full rounded-lg shadow-lg'>{children}</div>;
+};
+export const LocationList = () => {
+  const { sortedLocations, userListData, areListsEnabled } = useLocationContext();
+
   const tweetText = `Most of my Twitter friends live in:%0A%0A${sortedLocations
     .slice(0, 3)
     .map((location, index) => `${index + 1}. ${location.location}`)
@@ -24,35 +66,60 @@ export const LocationList = ({
 
   return (
     <Wrapper>
-      <h1 className='text-3xl font-semibold mb-6'>Where do your twitter friends live?</h1>
+      <h1 className='text-5xl font-extrabold mb-6 text-center text-gradient'>
+        Where do your twitter friends live?
+      </h1>
       <a
-        className='flex items-center justify-center py-3 px-6 mb-6 max-w-sm mx-auto bg-blue-500 hover:bg-blue-700 active:bg-blue-900
-        text-white  rounded-md ease-in-out shadow-lg'
+        className='flex items-center justify-center py-4 px-6 mb-6 max-w-sm mx-auto cta-gradient text-white font-semibold rounded-md shadow-md hover:shadow-lg
+        active:scale-95 transition-transform ease-in-out duration-100
+        focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50 text-lg'
         href={`https://twitter.com/intent/tweet?text=${tweetText}`}
         target='_blank'
         rel='noreferrer'
       >
-        Tweet The Result!
+        Share the results on Twitter!
       </a>
-      <ul className='space-y-4'>
+
+      <ListsSection />
+
+      <ul className='grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3'>
         {sortedLocations.map((location, index) => (
           <li key={index}>
-            <a
-              href={`#location/${encodeURIComponent(location.location)}`}
-              className='hover:bg-gray-300 hover:text-gray-900
+            <Card>
+              <a
+                href={`#location/${encodeURIComponent(location.location)}`}
+                className='
+              hover:text-gray-300 active:text-gray-500 transition-colors ease-in-out'
+              >
+                <CardHeader>
+                  <CardTitle>
+                    <span className='mr-1'>#{index + 1}</span>
+                    <span>{location.location}</span>
+                  </CardTitle>
+                </CardHeader>
 
-              active:bg-gray-500 transition-colors ease-in-out flex justify-between items-center p-4 bg-gray-700 rounded-lg shadow-xl'
-            >
-              <div>
-                <span className='text-lg mr-1'>#{index + 1}</span>
-                <span className='text-lg'>{location.location}</span>
-              </div>
-              <div className='flex items-center space-x-2'>
-                <span className='py-1 px-3 text-center text-lg'>
-                  {Object.keys(location.users).length}
-                </span>
-              </div>
-            </a>
+                <CardFooter className='flex justify-between'>
+                  <div className='flex -space-x-3  justify-center'>
+                    {Object.values(location.users)
+                      .slice(0, 8)
+                      .sort((a, b) => b.followers - a.followers)
+                      .map((user) => (
+                        <Avatar key={user.screen_name} className='h-7 w-7'>
+                          <AvatarImage
+                            src={user.avatar}
+                            className='hover:opacity-60 transition-opacity ease-in-out duration-100 cursor-pointer '
+                          />
+                          <AvatarFallback>TTF</AvatarFallback>
+                        </Avatar>
+                      ))}
+                  </div>
+                  <div className='text-lg'>
+                    <span>{Object.keys(location.users).length}</span>
+                    <span> friends</span>
+                  </div>
+                </CardFooter>
+              </a>
+            </Card>
           </li>
         ))}
       </ul>

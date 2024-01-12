@@ -1,11 +1,11 @@
 import { User } from '@/components/LocationsWrapper';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useLocationContext } from '@/lib/LocationContext';
-import React, { useEffect } from 'react';
+import React from 'react';
 
-import { GOOGLE_IMG_SCRAP } from 'google-img-scrap';
 import { ArrowLeft } from 'lucide-react';
 import { Wrapper } from '@/components/LocationList';
+import LocationImage from '@/components/ui/LocationImage';
 
 const formatNumber = (num) => {
   return num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -14,27 +14,13 @@ const formatNumber = (num) => {
 export const LocationDetails = ({ locationName }: { locationName?: string }) => {
   const { locations } = useLocationContext();
 
-  const [image, setImage] = React.useState('');
-  useEffect(() => {
-    const fetchData = async () => {
-      const images = await GOOGLE_IMG_SCRAP({
-        search: locationName,
-      });
-      // get the first image that's taller than 600px:
-      const image = images.result.find((image) => image.height > 600);
-      setImage(image.url);
-    };
-
-    fetchData();
-  }, [locationName]);
-
   const usersObject = locations[locationName];
 
   if (!usersObject) {
     return <div>No data available for this location.</div>;
   }
 
-  const users: User[] = Object.values(usersObject);
+  const users: User[] = Object.values(usersObject) as unknown as User[];
 
   const sortedUsers = users.sort((a, b) => b.followers - a.followers);
 
@@ -42,11 +28,11 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
     <Wrapper>
       <button
         onClick={() => window.history.back()}
-        className='flex gap-1 mb-4 items-center text-white hover:text-gray-300 text-lg'
+        className='flex gap-1 mb-4 items-center text-gray-200 hover:text-gray-300 text-lg'
       >
         <ArrowLeft></ArrowLeft> <span>Back</span>
       </button>
-      <img src={image} alt={locationName} className='w-full h-64 mb-3 rounded-md object-cover' />
+      <LocationImage locationName={locationName} className='h-64 mb-3 rounded-md' />
 
       <h1 className='text-3xl font-semibold mb-6'>Friends in {locationName}</h1>
       <ul className='space-y-4'>
@@ -60,7 +46,8 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
             >
               <div className='flex items-center space-x-2'>
                 <Avatar>
-                  <AvatarImage src={user.avatar} />
+                  <AvatarImage loading='lazy' src={user.avatar} />
+                  <AvatarFallback>{user.name}</AvatarFallback>
                 </Avatar>
                 <div className='flex flex-col'>
                   {user.isFriend && (

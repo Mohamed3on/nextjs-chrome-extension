@@ -1,4 +1,3 @@
-import { Wrapper } from '@/components/LocationList';
 import { Progress } from '@/components/ui/progress';
 import React from 'react';
 

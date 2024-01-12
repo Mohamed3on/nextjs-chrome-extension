@@ -1,12 +1,12 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { readLocalStorage } from '@/utils/localStorage';
-import { UsersMap } from '@/components/LocationsWrapper';
+import { User, UsersMap } from '@/components/LocationsWrapper';
 import { processLocations } from '@/utils/data';
 
 export const LocationsContext = createContext(null);
 
 export const useLocationContext = () => {
-  const context = React.useContext(LocationsContext);
+  const context: LocationsContextProps = React.useContext(LocationsContext);
 
   if (context === undefined) {
     throw new Error('useLocationContext must be used within a LocationsProvider');
@@ -15,10 +15,26 @@ export const useLocationContext = () => {
   return context;
 };
 
+export type LocationsContextProps = {
+  locations: UsersMap;
+  sortedLocations: {
+    location: string;
+    users: UsersMap;
+  }[];
+  userListData: {
+    name: string;
+    users: User[];
+    avatar: string;
+    id: string;
+  }[];
+  areListsEnabled?: boolean;
+};
+
 export const LocationsProvider = ({ children }) => {
-  const [data, setData] = useState({
+  const [data, setData] = useState<LocationsContextProps>({
     locations: {},
     sortedLocations: [],
+    userListData: [],
   });
 
   useEffect(() => {
@@ -27,7 +43,12 @@ export const LocationsProvider = ({ children }) => {
         const result = await readLocalStorage(['userData', 'enableLists']);
 
         if (result?.['userData']) {
-          const userListData = result?.['userData']['userListData'];
+          const userListData: {
+            name: string;
+            users: User[];
+            avatar: string;
+            id: string;
+          }[] = result?.['userData']['userListData'];
           const friends = result?.['userData']['friends'];
 
           // Initialize an empty object to store user data
@@ -37,9 +58,9 @@ export const LocationsProvider = ({ children }) => {
             userListData.forEach((list) =>
               list.users.forEach((user) => {
                 if (!usersMap[user.screen_name]) {
-                  usersMap[user.screen_name] = { ...user, lists: [list.name], isFriend: false };
+                  usersMap[user.screen_name] = { ...user, lists: [list.id], isFriend: false };
                 } else {
-                  usersMap[user.screen_name].lists.push(list.name);
+                  usersMap[user.screen_name].lists.push(list.id);
                 }
               })
             );
@@ -70,7 +91,12 @@ export const LocationsProvider = ({ children }) => {
               users: items,
             }));
 
-          setData({ locations: processedLocations, sortedLocations: sortedData });
+          setData({
+            locations: processedLocations,
+            sortedLocations: sortedData,
+            userListData,
+            areListsEnabled: result?.['enableLists'],
+          });
 
           return;
         }

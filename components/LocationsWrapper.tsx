@@ -24,7 +24,7 @@ export const LocationsWrapper = () => {
     <div>
       {sortedLocations.length > 0 ? (
         <div className='flex items-center justify-center'>
-          <LocationList sortedLocations={sortedLocations} />
+          <LocationList />
         </div>
       ) : (
         <Refresh></Refresh>

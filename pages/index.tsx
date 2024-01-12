@@ -5,6 +5,7 @@ import { readLocalStorage } from '../utils/localStorage';
 import { LocationsWrapper } from '@/components/LocationsWrapper';
 import { LocationsProvider } from '@/lib/LocationContext';
 import { NavBar } from '@/components/ui/NavBar';
+import { toast } from 'sonner';
 
 declare const chrome: any;
 
@@ -19,6 +20,9 @@ export default function Home() {
     const handleStorageChange = (changes, areaName) => {
       if (areaName === 'local') {
         if (changes.hasOwnProperty('twitterHandle')) {
+          toast('Your data has been saved!', {
+            description: 'head to twitter.com and come back again to see where your friends live!',
+          });
           // data is stale here, so we need to fetch it again
           chrome.storage.local.remove('userData');
           const newHandle = changes['twitterHandle'].newValue;
@@ -83,7 +87,7 @@ export default function Home() {
 
       setUserDetails({
         twitterHandle: result?.['twitterHandle'],
-        enableLists: !!result?.['enableLists'],
+        enableLists: result?.['enableLists'],
       });
     };
 
@@ -142,7 +146,7 @@ export default function Home() {
 
   return (
     <div className='bg-background relative flex min-h-screen flex-col'>
-      <NavBar />
+      <NavBar userName={userDetails?.twitterHandle ? `@${userDetails?.twitterHandle}` : 'Config'} />
       {renderContentBasedOnRoute()}
     </div>
   );

@@ -10,12 +10,11 @@ import {
   Card,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
 
 import * as z from 'zod';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import {
   Form,
   FormControl,
@@ -25,8 +24,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { cn } from '@/lib/utils';
-import { Cross1Icon } from '@radix-ui/react-icons';
 import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
@@ -63,9 +60,7 @@ export const Config = ({
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     onDataSubmit(data);
-    toast('Your data has been saved!', {
-      description: 'head to twitter.com and come back again to see where your friends live!',
-    });
+    window.location.hash = 'all_locations';
   }
 
   return (
