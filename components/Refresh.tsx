@@ -2,7 +2,7 @@ import { Progress } from '@/components/ui/progress';
 import React from 'react';
 
 export const Refresh = () => {
-  const [progress, setProgress] = React.useState(13);
+  const [progress, setProgress] = React.useState(10);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -13,13 +13,18 @@ export const Refresh = () => {
     }, 3000);
 
     const timer3 = setTimeout(() => {
-      setProgress(100);
+      setProgress(90);
     }, 5000);
+
+    const timer4 = setTimeout(() => {
+      setProgress(100);
+    }, 7000);
 
     return () => {
       clearTimeout(timer);
       clearTimeout(timer2);
       clearTimeout(timer3);
+      clearTimeout(timer4);
     };
   }, []);
 
