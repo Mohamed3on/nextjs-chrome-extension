@@ -74,9 +74,7 @@ export const LocationList = () => {
   const tweetText = `Most of my Twitter friends live in:%0A%0A${sortedLocations
     .slice(0, 3)
     .map((location, index) => `${index + 1}. ${location.location}`)
-    .join(
-      '%0A'
-    )}.%0A%0ACheck out where your friends live at https://twitter-friends-location.vercel.app`;
+    .join('%0A')}.%0A%0ACheck out where your friends live at https://tribefinder.app`;
 
   return (
     <Wrapper>

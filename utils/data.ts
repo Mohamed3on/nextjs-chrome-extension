@@ -86,7 +86,6 @@ const duplicate_mapping = {
   München: 'Munich',
   'Comunidad De Madrid': 'Madrid',
   Bengaluru: 'Bangalore',
-  'Sillicon Valley': 'California',
   Nederland: 'Netherlands',
   NL: 'Netherlands',
   '🇳🇱': 'Netherlands',
@@ -139,7 +138,7 @@ export const processLocation = (location: string) => {
     .replace(/\b\d+k?\b|\b\d+m?\b/gi, '') // Remove numbers and numbers followed by 'k', 'K', 'M', or 'm'
     .split(/\s*(?:via|,|\/|\\|&|\+|\||·|\/\/|\|\||→|•|✈️|➡️)\s*|\s+and\s+/) // Split by delimiters
     .map((l) => {
-      if (l.includes('bay area')) {
+      if (l.includes('bay area') || l.includes('silicon valley')) {
         return 'california';
       }
       return l.trim();
