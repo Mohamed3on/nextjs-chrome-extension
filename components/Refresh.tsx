@@ -1,7 +1,11 @@
 import { Progress } from '@/components/ui/progress';
+import { useStorageContext } from '@/lib/StorageContext';
 import React from 'react';
 
 export const Refresh = () => {
+  const {
+    storageData: { twitterHandle },
+  } = useStorageContext();
   const [progress, setProgress] = React.useState(10);
 
   React.useEffect(() => {
@@ -31,14 +35,16 @@ export const Refresh = () => {
   return (
     <div className='flex items-center justify-center flex-col gap-7'>
       <Progress value={progress} className='w-[60%]' />
-
       <h1 className='text-2xl font-bold text-center text-gray-400'>
-        The more people you follow, the longer this may take
+        Crunching the data for @{twitterHandle}, please wait
       </h1>
 
       <h2 className='text-xl font-bold text-center text-gray-500'>
-        Please wait while we fetch your data (and don&apos;t close the open twitter tab!)
+        The more people you follow, the longer this may take
       </h2>
+      <div className='text-sm font-semibold text-red-500'>
+        Please don&apos;t close the open twitter tab!
+      </div>
     </div>
   );
 };

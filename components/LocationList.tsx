@@ -40,7 +40,7 @@ const ListsSection = () => {
       <AccordionItem value='item-1'>
         <AccordionTrigger className='justify-start gap-2'>Included lists</AccordionTrigger>
         <AccordionContent>
-          <div className='flex flex-row items-center space-x-3 mb-4'>
+          <div className='flex flex-row items-center space-x-3 mb-4 flex-wrap gap-2'>
             {userListData.map((list) => (
               <div key={list.id} className='flex items-center'>
                 <div className='rounded-full bg-gray-200  p-1 flex justify-between items-center gap-1 pr-2'>

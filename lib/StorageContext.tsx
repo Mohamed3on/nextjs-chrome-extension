@@ -63,14 +63,28 @@ export const StorageProvider = ({ children }) => {
           const newHandle = changes['twitterHandle'].newValue;
 
           if (newHandle) {
-            chrome.tabs.query({ currentWindow: true }, function (tabs) {
+            chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
               const correctTab = tabs.find((tab) => tab.url.includes('twitter.com'));
-              if (correctTab)
-                chrome.tabs.sendMessage(correctTab.id, { message: 'refresh' }, function (response) {
-                  console.log(response);
-                });
+              if (correctTab) {
+                try {
+                  chrome.tabs.sendMessage(
+                    correctTab.id,
+                    { message: 'refresh' },
+                    function (response) {
+                      console.log(response);
+                      if (!response) {
+                        window.open(`https://twitter.com/${newHandle}`, '_blank');
+                      }
+                    }
+                  );
+                  return;
+                } catch (error) {
+                  console.log(error);
+                }
+              }
+
               // runs inject.js to fetch the new data
-              else window.open(`https://twitter.com/${newHandle}`, '_blank');
+              window.open(`https://twitter.com/${newHandle}`, '_blank');
             });
           }
         }
