@@ -20,7 +20,6 @@ export const Refresh = () => {
               if (response.type === 'success') {
                 setRefreshing(false);
               } else if (response.type === 'error') {
-                console.log('error');
                 setErrorMessage(
                   'Something went wrong. The user account may be private or suspended.'
                 );
