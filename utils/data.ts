@@ -91,6 +91,15 @@ const duplicate_mapping = {
   '🇳🇱': 'Netherlands',
   'The Netherlands': 'Netherlands',
   Québec: 'Quebec',
+  MT: 'Montana',
+  DET: 'Detroit',
+  IN: 'Indiana',
+  ATX: 'Austin',
+  SD: 'San Diego',
+  BK: 'Brooklyn',
+  Cdmx: 'Mexico City',
+  America: 'United States',
+  NH: 'New Hampshire',
 };
 
 export function consolidateDuplicates(data) {
