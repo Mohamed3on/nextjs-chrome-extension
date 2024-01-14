@@ -5,6 +5,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocationContext } from '@/lib/LocationContext';
 import { useStorageContext } from '@/lib/StorageContext';
@@ -16,21 +17,26 @@ const ListsSection = () => {
 
   const {
     storageData: { enableLists },
+    setLocalStorage,
   } = useStorageContext();
   if (userListData.length === 0) return null;
 
   if (!enableLists) {
     return (
       <div className='mb-4'>
-        <p className='text-center text-gray-500'>
-          Tip: You can include your lists in the results by enabling them in the{' '}
-          <a
-            href='#config'
-            className='text-blue-500 hover:underline hover:text-blue-100 transition-colors ease-in-out'
+        <p className='text-center text-gray-500 text-xs'>
+          Tip: You can
+          <Button
+            variant='link'
+            className='p-1 text-xs '
+            onClick={(e) => {
+              e.preventDefault();
+              setLocalStorage({ enableLists: true });
+            }}
           >
-            config
-          </a>
-          .
+            include
+          </Button>
+          members of your lists in the results
         </p>
       </div>
     );
@@ -53,12 +59,16 @@ const ListsSection = () => {
               </div>
             ))}
           </div>
-          <a
-            href='#config'
-            className='text-blue-500 hover:underline hover:text-blue-100 transition-colors ease-in-out mt-2'
+          <Button
+            variant='ghost'
+            className=' mt-2 text-blue-500 hover:text-blue-400 active:text-blue-600 transition-colors ease-in-out'
+            onClick={(e) => {
+              e.preventDefault();
+              setLocalStorage({ enableLists: false });
+            }}
           >
             Want to exclude them?
-          </a>
+          </Button>
         </AccordionContent>
       </AccordionItem>
     </Accordion>
