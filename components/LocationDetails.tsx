@@ -34,7 +34,9 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
       </button>
       <LocationImage locationName={locationName} className='h-64 mb-3 rounded-md' />
 
-      <h1 className='text-3xl font-semibold mb-6'>Friends in {locationName}</h1>
+      <h1 className='text-3xl font-semibold mb-6'>
+        {sortedUsers.length} Friends in {locationName}
+      </h1>
       <ul className='space-y-4'>
         {sortedUsers.map((user, index) => (
           <li key={index}>

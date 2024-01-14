@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { GOOGLE_IMG_SCRAP } from 'google-img-scrap';
 import { cn } from '@/lib/utils';
 
+const minWidth = 600;
+const minHeight = 400;
+
 const LocationImage = ({
   locationName,
-  minHeight = 600,
   className,
 }: {
   locationName: string;
-  minHeight?: number;
   className?: string;
 }) => {
   const [image, setImage] = useState('');
@@ -18,15 +19,18 @@ const LocationImage = ({
       if (locationName) {
         const images = await GOOGLE_IMG_SCRAP({
           search: locationName,
+          limit: 10,
         });
         // Get the first image that's taller than the given min height:
-        const foundImage = images.result.find((img) => img.height > minHeight);
+        const foundImage = images.result.find(
+          (img) => img.width > minWidth && img.height > minHeight
+        );
         setImage(foundImage.url);
       }
     };
 
     fetchData();
-  }, [locationName, minHeight]);
+  }, [locationName]);
 
   if (!image) {
     return <div>Loading...</div>; // Or any other placeholder content

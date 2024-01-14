@@ -132,6 +132,10 @@ export const processLocation = (location: string) => {
     return coords;
   }
 
+  if (processedLocation.includes('washington, ')) {
+    return ['Washington D.C.'];
+  }
+
   // Further process the location string
   return processedLocation
     .replace(/\s*\([^)]*\)/g, '') // Remove content within parentheses
