@@ -2,15 +2,22 @@ const userData = {};
 
 chrome.runtime.onMessage.addListener(({ message }, sender, sendResponse) => {
   if (message === 'refresh') {
+    console.log('refreshing data...');
     run()
       .then(() => {
-        sendResponse({ message: 'done' });
+        console.log('done!!!');
+        sendResponse({ message: 'done', type: 'success' });
       })
       .catch((error) => {
-        sendResponse({ message: 'error', error });
+        console.log('error, user probably private or does not exist', error);
+        sendResponse({
+          message: 'user probably private or does not exist',
+          error: error.message,
+          type: 'error',
+        });
       });
+    return true; // Keep the message channel open for the response
   }
-  return true;
 });
 
 const readLocalStorage = async (key) => {
@@ -128,13 +135,8 @@ const run = async () => {
 
     const getPopularFriendsLocations = async () => {
       console.log('fetching following list...');
-      let friendsList = [];
-      try {
-        friendsList = await fetchFollowingList(screen_name);
-        userData.friends = friendsList.map(processUser);
-      } catch (error) {
-        console.log('error fetching friends:', error);
-      }
+      let friendsList = await fetchFollowingList(screen_name);
+      userData.friends = friendsList.map(processUser);
 
       let userLists = [];
       try {
@@ -174,10 +176,7 @@ const run = async () => {
 
     await getPopularFriendsLocations();
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.log('Error fetching data:', error);
+    throw error;
   }
 };
-
-(async () => {
-  await run();
-})();

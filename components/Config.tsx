@@ -35,7 +35,11 @@ const formSchema = z.object({
       required_error: 'Please enter your Twitter handle.',
     })
     .min(2)
-    .max(50),
+    .max(50)
+    .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, {
+      message:
+        'Invalid Twitter handle. Must start with a letter and contain only letters, numbers, and underscores.',
+    }),
   enableLists: z.boolean(),
 });
 
@@ -88,7 +92,7 @@ export const Config = ({
                         <span className='absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500'>
                           @
                         </span>
-                        <Input placeholder='mohamed3on' className='max-w-96 pl-6' {...field} />
+                        <Input placeholder='elonmusk' className='max-w-96 pl-6' {...field} />
                       </div>
                     </FormControl>
                     <FormDescription>

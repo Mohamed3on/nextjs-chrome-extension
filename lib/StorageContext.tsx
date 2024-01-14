@@ -25,22 +25,24 @@ export const StorageProvider = ({ children }) => {
   const [storageData, setStorageData] = useState({
     twitterHandle: '',
     enableLists: false,
-    userData: {},
+    userData: null,
   });
 
   useEffect(() => {
     // Fetch initial data from storage
     const fetchData = async () => {
+      let result = {};
       try {
-        const result = await readLocalStorage(['twitterHandle', 'enableLists', 'userData']);
-        setStorageData({
-          twitterHandle: result?.['twitterHandle'] || '',
-          enableLists: result?.['enableLists'] || false,
-          userData: result?.['userData'] || {},
-        });
+        result = await readLocalStorage(['twitterHandle', 'enableLists', 'userData']);
       } catch (error) {
-        console.error('Error fetching data from storage:', error);
+        console.log('no user data was found yet');
       }
+
+      setStorageData({
+        twitterHandle: result?.['twitterHandle'] || '',
+        enableLists: result?.['enableLists'] || false,
+        userData: result?.['userData'] || null,
+      });
     };
 
     fetchData();
@@ -50,8 +52,6 @@ export const StorageProvider = ({ children }) => {
       // Handle changes
       if (areaName === 'local') {
         if (changes.hasOwnProperty('twitterHandle')) {
-          // send refresh message to inject.js running on twitter.com
-
           toast('Please wait while we fetch your data', {
             description:
               'This might take a few seconds. Please do not close the open twitter tab in the meantime',
@@ -60,39 +60,6 @@ export const StorageProvider = ({ children }) => {
           });
           // data is stale here, so we need to fetch it again
           chrome.storage.local.remove('userData');
-          const newHandle = changes['twitterHandle'].newValue;
-
-          if (newHandle) {
-            chrome.tabs.query({ currentWindow: true, active: true }, function (tabs) {
-              const correctTab = tabs.find((tab) => tab.url.includes('twitter.com'));
-              if (correctTab) {
-                try {
-                  chrome.tabs.sendMessage(
-                    correctTab.id,
-                    { message: 'refresh' },
-                    function (response) {
-                      console.log(response);
-                      if (!response) {
-                        window.open(`https://twitter.com/${newHandle}`, '_blank');
-                      }
-                    }
-                  );
-                  return;
-                } catch (error) {
-                  console.log(error);
-                }
-              }
-
-              // runs inject.js to fetch the new data
-              window.open(`https://twitter.com/${newHandle}`, '_blank');
-            });
-          }
-        }
-
-        if (changes.hasOwnProperty('userData')) {
-          if (!changes['userData'].hasOwnProperty('newValue')) {
-            window.location.hash = 'all_locations';
-          }
         }
 
         const newResult = (prevData) => ({

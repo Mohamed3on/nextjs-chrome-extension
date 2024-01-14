@@ -61,13 +61,11 @@ export function Home() {
       );
     }
 
-    if (userData || route === 'all_locations') {
-      return (
-        <LocationsProvider>
-          <LocationsWrapper />
-        </LocationsProvider>
-      );
-    }
+    return (
+      <LocationsProvider>
+        <LocationsWrapper />
+      </LocationsProvider>
+    );
   };
 
   const onSubmit = ({
