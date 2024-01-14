@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "X (Twitter) Friend Locations",
-  "short_name": "twitterFriendLocations",
+  "name": "Tribe Finder for Twitter (X)",
+  "short_name": "tribeFinderForTwitter",
   "version": "1.0.0",
   "description": "Find out where your X (formerly Twitter) friends are located",
   "icons": {
