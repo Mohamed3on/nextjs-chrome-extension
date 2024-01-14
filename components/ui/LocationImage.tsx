@@ -18,7 +18,7 @@ const LocationImage = ({
     const fetchData = async () => {
       if (locationName) {
         const images = await GOOGLE_IMG_SCRAP({
-          search: locationName,
+          search: `${locationName}`,
           limit: 10,
         });
         // Get the first image that's taller than the given min height:

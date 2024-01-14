@@ -24,7 +24,7 @@ const readLocalStorage = async (key) => {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get([key], function (result) {
       if (result[key] === undefined) {
-        reject(new Error('Key not found: ' + key));
+        resolve(null);
       } else {
         resolve(result[key]);
       }
@@ -126,13 +126,13 @@ const processUser = (user) => {
 };
 
 const run = async () => {
+  const screen_name = await readLocalStorage('twitterHandle');
+  if (!screen_name) {
+    console.log('No twitter handle was provided, aborting...');
+    return;
+  }
+
   try {
-    const screen_name = await readLocalStorage('twitterHandle');
-
-    if (!screen_name) {
-      throw new Error('No twitter handle was provided');
-    }
-
     const getPopularFriendsLocations = async () => {
       console.log('fetching following list...');
       let friendsList = await fetchFollowingList(screen_name);
@@ -180,3 +180,9 @@ const run = async () => {
     throw error;
   }
 };
+
+(async () => {
+  await run().catch((error) => {
+    console.log('error, user probably private or does not exist', error);
+  });
+})();

@@ -17,22 +17,24 @@ export const Refresh = () => {
         if (correctTab) {
           try {
             chrome.tabs.sendMessage(correctTab.id, { message: 'refresh' }, function (response) {
-              if (response.type === 'success') {
+              if (response?.type === 'success') {
                 setRefreshing(false);
-              } else if (response.type === 'error') {
+              } else if (response?.type === 'error') {
                 setErrorMessage(
                   'Something went wrong. The user account may be private or suspended.'
                 );
+              } else {
+                chrome.tabs.create({ url: `https://twitter.com/`, active: false });
               }
             });
-            return;
           } catch (error) {
+            // runs inject.js to fetch the new data
+
             console.log(error);
           }
+        } else {
+          chrome.tabs.create({ url: `https://twitter.com/`, active: false });
         }
-
-        // runs inject.js to fetch the new data
-        window.open(`https://twitter.com/`, '_blank');
       });
   }, [twitterHandle, userData]);
 

@@ -1,19 +1,21 @@
 chrome.action.onClicked.addListener(function (tab) {
-  chrome.tabs.query({ currentWindow: true }, function (tabs) {
-    chrome.tabs.create({
-      url: chrome.runtime.getURL('index.html'),
-    });
+  const indexUrl = chrome.runtime.getURL('index.html');
 
-    const twitterTab = tabs.find((tab) => tab.url.includes('twitter.com'));
-    if (!twitterTab) {
-      chrome.tabs.create({ url: 'https://twitter.com' });
-    } else {
-      chrome.tabs.sendMessage(twitterTab.id, { message: 'refresh' }, function (response) {
-        if (chrome.runtime.lastError || (response && response.type !== 'success')) {
-          // If there's an error or response is not 'success', open Twitter
-          chrome.tabs.create({ url: 'https://twitter.com' });
-        }
-      });
+  chrome.tabs.query(
+    {
+      currentWindow: true,
+    },
+    function (tabs) {
+      // Check if a tab with index.html is already open
+      const existingTab = tabs.find((tab) => tab.url === indexUrl);
+
+      if (existingTab) {
+        // If it exists, focus on that tab
+        chrome.tabs.update(existingTab.id, { active: true });
+      } else {
+        // If it doesn't exist, create a new tab with index.html
+        chrome.tabs.create({ url: indexUrl });
+      }
     }
-  });
+  );
 });
