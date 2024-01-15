@@ -13,10 +13,13 @@ export const Refresh = () => {
   useEffect(() => {
     if (!userData)
       chrome.tabs.query({ currentWindow: true }, function (tabs) {
-        const correctTab = tabs.find((tab) => tab.url.includes('twitter.com'));
-        if (correctTab) {
+        const allMatchingTabs = tabs.filter((tab) => tab.url.includes('twitter.com'));
+
+        if (allMatchingTabs.length > 0) {
           try {
-            chrome.tabs.sendMessage(correctTab.id, { message: 'refresh' }, function (response) {
+            const mostRecentTab = allMatchingTabs[allMatchingTabs.length - 1];
+
+            chrome.tabs.sendMessage(mostRecentTab.id, { message: 'refresh' }, function (response) {
               if (response?.type === 'success') {
                 setRefreshing(false);
               } else if (response?.type === 'error') {
