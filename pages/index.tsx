@@ -4,15 +4,18 @@ import { LocationDetails } from '@/components/LocationDetails'; // Import Locati
 import { LocationsWrapper } from '@/components/LocationsWrapper';
 import { LocationsProvider } from '@/lib/LocationContext';
 import { NavBar } from '@/components/ui/NavBar';
-import { StorageProvider, useStorageContext } from '@/lib/StorageContext';
+import {
+  StorageProvider,
+  useEnableListsContext,
+  useTwitterHandleContext,
+} from '@/lib/StorageContext';
 
 export function Home() {
   const [route, setRoute] = useState('');
 
-  const {
-    storageData: { twitterHandle, enableLists, userData },
-    setLocalStorage,
-  } = useStorageContext();
+  const { twitterHandle, setTwitterHandle } = useTwitterHandleContext();
+
+  const { enableLists, setEnableLists } = useEnableListsContext();
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -75,12 +78,8 @@ export function Home() {
     twitterHandle: string;
     enableLists: boolean;
   }) => {
-    const data = {
-      twitterHandle: twitterHandle.replace('@', ''),
-      enableLists,
-    };
-
-    setLocalStorage(data);
+    setTwitterHandle(twitterHandle.replace('@', ''));
+    setEnableLists(enableLists);
   };
 
   return (

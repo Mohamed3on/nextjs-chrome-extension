@@ -1,11 +1,11 @@
 import { Progress } from '@/components/ui/progress';
-import { useStorageContext } from '@/lib/StorageContext';
+import { useTwitterHandleContext, useUserDataContext } from '@/lib/StorageContext';
 import React, { useEffect } from 'react';
 
 export const Refresh = () => {
-  const {
-    storageData: { twitterHandle, userData },
-  } = useStorageContext();
+  const userData = useUserDataContext();
+
+  const { twitterHandle } = useTwitterHandleContext();
   const [progress, setProgress] = React.useState(10);
   const [refreshing, setRefreshing] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState('');

@@ -1,3 +1,5 @@
+import { UsersMap } from '@/components/LocationsWrapper';
+
 export function titleCaseWithAcronyms(str) {
   // If the location is an acronym, Uppercase it (SF, USA, UK, etc.)
   if (str.length <= 3) {
@@ -15,7 +17,8 @@ export function titleCaseWithAcronyms(str) {
 }
 
 const duplicate_mapping = {
-  CA: 'California',
+  // CA: 'California',
+  California: 'CA',
   NY: 'New York',
   NYC: 'New York',
   TX: 'Texas',
@@ -100,6 +103,10 @@ const duplicate_mapping = {
   Cdmx: 'Mexico City',
   America: 'United States',
   NH: 'New Hampshire',
+  Lisboa: 'Lisbon',
+  'Ciudad De México': 'Mexico City',
+  OK: 'Oklahoma',
+  Warszawa: 'Warsaw',
 };
 
 export function consolidateDuplicates(data) {
@@ -117,6 +124,23 @@ export function consolidateDuplicates(data) {
 
   return consolidatedData;
 }
+
+const getLocationParts = (location, alsoSplitComma = true) => {
+  const splitRegex = alsoSplitComma
+    ? /\s*(?:via|,|\/|\\|&|\+|\||·|\/\/|\|\||→|•|✈️|➡️)\s*|\s+and\s+/
+    : /\s*(?:via|\/|\\|&|\+|\||·|\/\/|\|\||→|•|✈️|➡️)\s*|\s+and\s+/;
+  return location
+    .replace(/\s*\([^)]*\)/g, '') // Remove content within parentheses
+    .replace(/\b\d+k?\b|\b\d+m?\b/gi, '') // Remove numbers and numbers followed by 'k', 'K', 'M', or 'm'
+    .split(splitRegex) // Split by delimiters
+    .map((l) => {
+      if (l.includes('bay area') || l.includes('silicon valley')) {
+        return 'california';
+      }
+      return l.trim();
+    })
+    .filter((l) => l !== '');
+};
 
 export const processLocation = (location: string) => {
   const lowerCaseLocation = location.toLowerCase();
@@ -142,25 +166,16 @@ export const processLocation = (location: string) => {
   }
 
   if (processedLocation.includes('washington, ')) {
-    return ['Washington D.C.'];
+    return ['washington dc'];
   }
 
   // Further process the location string
-  return processedLocation
-    .replace(/\s*\([^)]*\)/g, '') // Remove content within parentheses
-    .replace(/\b\d+k?\b|\b\d+m?\b/gi, '') // Remove numbers and numbers followed by 'k', 'K', 'M', or 'm'
-    .split(/\s*(?:via|,|\/|\\|&|\+|\||·|\/\/|\|\||→|•|✈️|➡️)\s*|\s+and\s+/) // Split by delimiters
-    .map((l) => {
-      if (l.includes('bay area') || l.includes('silicon valley')) {
-        return 'california';
-      }
-      return l.trim();
-    })
-    .filter((l) => l !== '');
+  return getLocationParts(processedLocation, true);
 };
 
 export const processLocations = (users) => {
   const locations = addLocations(users);
+
   const titledLocations = {};
 
   for (let location in locations) {
@@ -168,6 +183,7 @@ export const processLocations = (users) => {
   }
 
   const consolidated = consolidateDuplicates(titledLocations);
+
   return consolidated;
 };
 
@@ -188,4 +204,103 @@ export const addLocations = (theList) => {
   });
 
   return locations;
+};
+
+const getCachedLocationMapping = async (key) => {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get([key], (result) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(result[key]);
+      }
+    });
+  });
+};
+
+const setCachedLocationMapping = (key, value) => {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set({ [key]: value }, () => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+};
+
+const fetchLocationMapping = async (location) => {
+  const queryParams = new URLSearchParams({
+    types: 'country,region,locality,district,place',
+    access_token:
+      'pk.eyJ1IjoibW9oYW1lZDNvbiIsImEiOiJjbHJlczV6M3ExbGR6MnV2eDc3aXQxNGFtIn0.-vM88zzygjbSRdf_BD6l1Q',
+  });
+
+  const response = await fetch(
+    `https://api.mapbox.com/geocoding/v5/mapbox.places/${location}.json?${queryParams}`
+  );
+  const data = await response.json();
+
+  if (!data.features || data.features.length === 0) {
+    return null;
+  }
+  const firstMatch = data.features[0];
+  const components = [firstMatch?.text];
+
+  if (firstMatch?.context)
+    for (const component of firstMatch.context) {
+      if (!component.id.includes('district')) {
+        components.push(component.text);
+      }
+    }
+  return components;
+};
+
+export const getMappedLocations = async (locations: { [key: string]: UsersMap }) => {
+  const mappedLocations = {};
+
+  for (const [key, valueObj] of Object.entries(locations)) {
+    if (key === 'Washington D.C.') {
+      mappedLocations[key] = valueObj;
+      continue;
+    }
+    let placeNameParts = await getCachedLocationMapping(key);
+
+    if (!placeNameParts) {
+      console.log(`Fetching mapping for ${key}`);
+
+      try {
+        placeNameParts = await fetchLocationMapping(key);
+        if (placeNameParts) {
+          await setCachedLocationMapping(key, placeNameParts);
+        } else {
+          console.log(`No place name found for ${key}`);
+          await setCachedLocationMapping(key, [key]);
+
+          mappedLocations[key] = valueObj;
+          continue;
+        }
+      } catch (error) {
+        console.error(`Error fetching location data for ${key}: ${error}`);
+        mappedLocations[key] = valueObj;
+        continue;
+      }
+    } else {
+      console.log(`Using cached mapping for ${key}`);
+    }
+
+    for (const placeNamePart of placeNameParts as string[]) {
+      if (!mappedLocations[placeNamePart]) {
+        mappedLocations[placeNamePart] = valueObj;
+      } else {
+        mappedLocations[placeNamePart] = {
+          ...mappedLocations[placeNamePart],
+          ...valueObj,
+        };
+      }
+    }
+  }
+
+  return mappedLocations;
 };

@@ -8,17 +8,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocationContext } from '@/lib/LocationContext';
-import { useStorageContext } from '@/lib/StorageContext';
+import { useEnableListsContext } from '@/lib/StorageContext';
 
 import React from 'react';
 
 const ListsSection = () => {
   const { userListData } = useLocationContext();
 
-  const {
-    storageData: { enableLists },
-    setLocalStorage,
-  } = useStorageContext();
+  const { setEnableLists, enableLists } = useEnableListsContext();
+
   if (userListData.length === 0) return null;
 
   if (!enableLists) {
@@ -31,7 +29,7 @@ const ListsSection = () => {
             className='p-1 text-xs '
             onClick={(e) => {
               e.preventDefault();
-              setLocalStorage({ enableLists: true });
+              setEnableLists(true);
             }}
           >
             include
@@ -64,7 +62,7 @@ const ListsSection = () => {
             className=' mt-2 text-blue-500 hover:text-blue-400 active:text-blue-600 transition-colors ease-in-out'
             onClick={(e) => {
               e.preventDefault();
-              setLocalStorage({ enableLists: false });
+              setEnableLists(false);
             }}
           >
             Want to exclude them?

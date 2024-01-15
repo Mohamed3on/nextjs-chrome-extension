@@ -1,7 +1,8 @@
+/* eslint-disable react/display-name */
 import React, { createContext, useState, useEffect } from 'react';
 import { User, UsersMap } from '@/components/LocationsWrapper';
-import { processLocations } from '@/utils/data';
-import { useStorageContext } from '@/lib/StorageContext';
+import { processLocations, getMappedLocations } from '@/utils/data';
+import { useEnableListsContext, useUserDataContext } from '@/lib/StorageContext';
 
 export const LocationsContext = createContext(null);
 
@@ -16,7 +17,7 @@ export const useLocationContext = () => {
 };
 
 export type LocationsContextProps = {
-  locations: UsersMap;
+  locations: { [key: string]: UsersMap };
   sortedLocations: {
     location: string;
     users: UsersMap;
@@ -29,15 +30,18 @@ export type LocationsContextProps = {
   }[];
 };
 
-export const LocationsProvider = ({ children }) => {
+export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.memo(function ({
+  children,
+}) {
   const [data, setData] = useState<LocationsContextProps>({
     locations: {},
     sortedLocations: [],
     userListData: [],
   });
-  const {
-    storageData: { userData, enableLists },
-  } = useStorageContext();
+
+  const userData = useUserDataContext();
+
+  const { enableLists } = useEnableListsContext();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,12 +79,20 @@ export const LocationsProvider = ({ children }) => {
             }
           });
 
-          const processedLocations = processLocations(Object.values(usersMap));
+          const processedLocations: {
+            [key: string]: UsersMap;
+          } = processLocations(Object.values(usersMap));
+          // filter out locations with only one user
 
-          const sortedData = Object.entries(processedLocations)
-            .filter(([, items]: [string, UsersMap]) => {
+          const filtered = Object.fromEntries(
+            Object.entries(processedLocations).filter(([, items]: [string, UsersMap]) => {
               return Object.keys(items).length > 1;
             })
+          );
+
+          const newLocations = await getMappedLocations(filtered);
+
+          const sortedData = Object.entries(newLocations)
 
             .sort(
               ([, a]: [string, UsersMap], [, b]: [string, UsersMap]) =>
@@ -92,12 +104,10 @@ export const LocationsProvider = ({ children }) => {
             }));
 
           setData({
-            locations: processedLocations,
+            locations: newLocations,
             sortedLocations: sortedData,
             userListData: userListData || [],
           });
-
-          return;
         } else {
           setData({
             locations: {},
@@ -114,4 +124,4 @@ export const LocationsProvider = ({ children }) => {
   }, [enableLists, userData]);
 
   return <LocationsContext.Provider value={{ ...data }}>{children}</LocationsContext.Provider>;
-};
+});

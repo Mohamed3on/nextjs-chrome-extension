@@ -1,32 +1,51 @@
 import { readLocalStorage } from '@/utils/localStorage';
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 
-export const StorageContext = createContext(null);
+export const TwitterHandleContext = createContext({
+  twitterHandle: '',
+  setTwitterHandle: (twitterHandle: string) => {},
+});
+export const EnableListsContext = createContext({
+  enableLists: false,
+  setEnableLists: (enableLists: boolean) => {},
+});
+export const UserDataContext = createContext(null);
 
-declare const chrome: any;
-
-export type StorageContextProps = {
-  storageData: { twitterHandle: string; enableLists: boolean; userData: any };
-  setLocalStorage: (data: any) => void;
-};
-
-export const useStorageContext = () => {
-  const context: StorageContextProps = React.useContext(StorageContext);
+export const useTwitterHandleContext = () => {
+  const context = React.useContext(TwitterHandleContext);
 
   if (context === undefined) {
-    throw new Error('useStorageContext must be used within a StorageProvider');
+    throw new Error('useTwitterHandleContext must be used within a TwitterHandleProvider');
+  }
+
+  return context;
+};
+
+export const useEnableListsContext = () => {
+  const context = React.useContext(EnableListsContext);
+
+  if (context === undefined) {
+    throw new Error('useEnableListsContext must be used within a EnableListsProvider');
+  }
+
+  return context;
+};
+
+export const useUserDataContext = () => {
+  const context = React.useContext(UserDataContext);
+
+  if (context === undefined) {
+    throw new Error('useUserDataContext must be used within a UserDataProvider');
   }
 
   return context;
 };
 
 export const StorageProvider = ({ children }) => {
-  const [storageData, setStorageData] = useState({
-    twitterHandle: '',
-    enableLists: false,
-    userData: null,
-  });
+  const [twitterHandle, setTwitterHandle] = useState('');
+  const [enableLists, setEnableLists] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     // Fetch initial data from storage
@@ -38,11 +57,10 @@ export const StorageProvider = ({ children }) => {
         console.log('no user data was found yet');
       }
 
-      setStorageData({
-        twitterHandle: result?.['twitterHandle'] || '',
-        enableLists: result?.['enableLists'] || false,
-        userData: result?.['userData'] || null,
-      });
+      setTwitterHandle(result?.['twitterHandle'] || '');
+      setEnableLists(result?.['enableLists'] || false);
+      console.log(result?.['userData']);
+      setUserData(result?.['userData'] || null);
     };
 
     fetchData();
@@ -58,18 +76,9 @@ export const StorageProvider = ({ children }) => {
             duration: 5000,
             dismissible: true,
           });
-          // data is stale here, so we need to fetch it again
-          chrome.storage.local.remove('userData');
+        } else if (changes.hasOwnProperty('userData')) {
+          setUserData(changes?.['userData']?.newValue || null);
         }
-
-        const newResult = (prevData) => ({
-          ...prevData,
-          ...Object.keys(changes).reduce((acc, key) => {
-            acc[key] = changes[key].newValue;
-            return acc;
-          }, {}),
-        });
-        setStorageData(newResult);
       }
     };
 
@@ -82,20 +91,51 @@ export const StorageProvider = ({ children }) => {
     };
   }, []);
 
-  const setLocalStorage = async (data) => {
-    setStorageData((prevData) => ({
-      ...prevData,
-      ...data,
-    }));
+  const setLocalStorage = (data) => {
     try {
       chrome.storage.local.set(data);
     } catch (error) {
       console.error('Error setting data in storage:', error);
     }
   };
+
+  const setUserDataInStorage = (userData) => {
+    setLocalStorage({ userData });
+    setUserData(userData);
+  };
+
   return (
-    <StorageContext.Provider value={{ storageData, setLocalStorage }}>
-      {children}
-    </StorageContext.Provider>
+    <TwitterHandleContext.Provider
+      value={useMemo(
+        () => ({
+          twitterHandle,
+          setTwitterHandle: (twitterHandle) => {
+            setTwitterHandle((prevHandle) => {
+              if (prevHandle !== twitterHandle) {
+                setUserDataInStorage(null);
+              }
+              setLocalStorage({ twitterHandle });
+              return twitterHandle;
+            });
+          },
+        }),
+        [twitterHandle]
+      )}
+    >
+      <EnableListsContext.Provider
+        value={useMemo(
+          () => ({
+            enableLists,
+            setEnableLists: (enableLists) => {
+              setLocalStorage({ enableLists });
+              setEnableLists(enableLists);
+            },
+          }),
+          [enableLists]
+        )}
+      >
+        <UserDataContext.Provider value={userData}>{children}</UserDataContext.Provider>
+      </EnableListsContext.Provider>
+    </TwitterHandleContext.Provider>
   );
 };

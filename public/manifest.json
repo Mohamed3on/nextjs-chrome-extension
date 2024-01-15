@@ -19,6 +19,7 @@
       "js": ["inject.js"]
     }
   ],
+
   "host_permissions": ["https://*.google.com/*", "https://*.twitter.com/*"],
 
   "background": {
