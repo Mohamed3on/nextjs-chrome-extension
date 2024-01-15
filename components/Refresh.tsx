@@ -6,7 +6,7 @@ export const Refresh = () => {
   const userData = useUserDataContext();
 
   const { twitterHandle } = useTwitterHandleContext();
-  const [progress, setProgress] = React.useState(10);
+  const [progress, setProgress] = React.useState(5);
   const [refreshing, setRefreshing] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState('');
 
@@ -42,7 +42,7 @@ export const Refresh = () => {
   }, [twitterHandle, userData]);
 
   React.useEffect(() => {
-    const progressSteps = [33, 45, 66, 80, 90, 100];
+    const progressSteps = [10, 20, 33, 45, 66, 75, 80, 90, 95, 97, 99, 100];
     let currentStep = 0;
 
     const timer = setInterval(() => {
@@ -52,7 +52,7 @@ export const Refresh = () => {
       if (currentStep === progressSteps.length) {
         clearInterval(timer);
       }
-    }, 2000);
+    }, 2500);
 
     return () => {
       clearInterval(timer);
