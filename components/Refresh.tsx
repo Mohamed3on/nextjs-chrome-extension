@@ -1,13 +1,12 @@
-import { Progress } from '@/components/ui/progress';
+import { ProgressBar } from '@/components/ProgressBar';
 import { useTwitterHandleContext, useUserDataContext } from '@/lib/StorageContext';
 import React, { useEffect } from 'react';
 
 export const Refresh = () => {
   const userData = useUserDataContext();
+  const [refreshing, setRefreshing] = React.useState(true);
 
   const { twitterHandle } = useTwitterHandleContext();
-  const [progress, setProgress] = React.useState(5);
-  const [refreshing, setRefreshing] = React.useState(true);
   const [errorMessage, setErrorMessage] = React.useState('');
 
   useEffect(() => {
@@ -41,24 +40,6 @@ export const Refresh = () => {
       });
   }, [twitterHandle, userData]);
 
-  React.useEffect(() => {
-    const progressSteps = [10, 20, 33, 45, 66, 75, 80, 90, 95, 97, 99, 100];
-    let currentStep = 0;
-
-    const timer = setInterval(() => {
-      setProgress(progressSteps[currentStep]);
-      currentStep++;
-
-      if (currentStep === progressSteps.length) {
-        clearInterval(timer);
-      }
-    }, 2500);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, []);
-
   if (errorMessage) {
     return (
       <div className='flex items-center justify-center flex-col gap-7'>
@@ -79,7 +60,7 @@ export const Refresh = () => {
   }
   return refreshing ? (
     <div className='flex items-center justify-center flex-col gap-7'>
-      <Progress value={progress} className='w-[60%]' />
+      <ProgressBar />
       <h1 className='text-2xl font-bold text-center text-gray-400'>
         Crunching the data for @{twitterHandle}, please wait
       </h1>
