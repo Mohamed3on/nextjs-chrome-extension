@@ -312,22 +312,30 @@ export const getMappedLocations = async (locations: { [key: string]: UsersMap })
 
   // Split locationNamesToFetch into batches and process each batch
   const batchSize = 30;
-  let batchPromises = [];
-  for (let i = 0; i < locationNamesToFetch.length; i += batchSize) {
-    const batch = locationNamesToFetch.slice(i, i + batchSize);
-    batchPromises.push(processBatch(batch));
-  }
+  try {
+    let batchPromises = [];
+    for (let i = 0; i < locationNamesToFetch.length; i += batchSize) {
+      const batch = locationNamesToFetch.slice(i, i + batchSize);
+      batchPromises.push(processBatch(batch));
+    }
 
-  const batchMappings = await Promise.all(batchPromises);
+    const batchMappings = await Promise.all(batchPromises);
 
-  // Merge results from all batches
-  batchMappings.forEach((batchResult) => {
-    Object.keys(batchResult).forEach((locationName) => {
-      const locationData = batchResult[locationName];
-      const addressParts = locationData.addressParts;
-      mappedLocations = addAddressParts(locations[locationName], addressParts, mappedLocations);
+    // Merge results from all batches
+    batchMappings.forEach((batchResult) => {
+      Object.keys(batchResult).forEach((locationName) => {
+        const locationData = batchResult[locationName];
+        const addressParts = locationData.addressParts;
+        mappedLocations = addAddressParts(locations[locationName], addressParts, mappedLocations);
+      });
     });
-  });
 
-  return mappedLocations;
+    return mappedLocations;
+  } catch (error) {
+    console.warn('Failed to fetch mappings, returning original locations', error);
+    return {
+      ...locations,
+      ...mappedLocations,
+    };
+  }
 };
