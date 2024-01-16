@@ -1,5 +1,10 @@
 import { UsersMap } from '@/components/LocationsWrapper';
 
+interface LocationMapping {
+  addressParts: string[];
+  coordinates?: number[];
+}
+
 export function titleCaseWithAcronyms(str) {
   // If the location is an acronym, Uppercase it (SF, USA, UK, etc.)
   if (str.length <= 3) {
@@ -17,7 +22,6 @@ export function titleCaseWithAcronyms(str) {
 }
 
 const duplicate_mapping = {
-  // CA: 'California',
   California: 'CA',
   NY: 'New York',
   NYC: 'New York',
@@ -206,13 +210,17 @@ export const addLocations = (theList) => {
   return locations;
 };
 
-const getCachedLocationMapping = async (key) => {
+const getCachedLocationMapping = async (key: string): Promise<LocationMapping | null> => {
   return new Promise((resolve, reject) => {
     chrome.storage.local.get([key], (result) => {
       if (chrome.runtime.lastError) {
         reject(chrome.runtime.lastError);
       } else {
-        resolve(result[key]);
+        if (result[key]) {
+          resolve(result[key] as LocationMapping);
+        } else {
+          resolve(null);
+        }
       }
     });
   });
@@ -230,77 +238,96 @@ const setCachedLocationMapping = (key, value) => {
   });
 };
 
-const fetchLocationMapping = async (location) => {
-  const queryParams = new URLSearchParams({
-    types: 'country,region,locality,district,place',
-    access_token:
-      'pk.eyJ1IjoibW9oYW1lZDNvbiIsImEiOiJjbHJlczV6M3ExbGR6MnV2eDc3aXQxNGFtIn0.-vM88zzygjbSRdf_BD6l1Q',
-  });
+const fetchLocationMappings = async (locations) => {
+  try {
+    const response = await fetch('https://location-coords-cache.vercel.app/api/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ placeNames: locations }),
+    });
 
-  const response = await fetch(
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${location}.json?${queryParams}`
-  );
-  const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-  if (!data.features || data.features.length === 0) {
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    console.error('Failed to load data:', error);
     return null;
   }
-  const firstMatch = data.features[0];
-  const components = [firstMatch?.text];
+};
 
-  if (firstMatch?.context)
-    for (const component of firstMatch.context) {
-      if (!component.id.includes('district')) {
-        components.push(component.text);
-      }
+const addAddressParts = (originalValue, placeNameParts, mappedLocations) => {
+  for (const placeNamePart of placeNameParts) {
+    if (!mappedLocations[placeNamePart]) {
+      mappedLocations[placeNamePart] = originalValue;
+    } else {
+      mappedLocations[placeNamePart] = {
+        ...mappedLocations[placeNamePart],
+        ...originalValue,
+      };
     }
-  return components;
+  }
+
+  return mappedLocations;
+};
+
+const processBatch = async (batch: string[]) => {
+  const batchMapping: { [key: string]: LocationMapping } = await fetchLocationMappings(batch);
+
+  for (const location of Object.keys(batchMapping)) {
+    await setCachedLocationMapping(location, batchMapping[location]);
+  }
+
+  return batchMapping;
 };
 
 export const getMappedLocations = async (locations: { [key: string]: UsersMap }) => {
-  const mappedLocations = {};
+  const locationNames = Object.keys(locations);
+  let mappedLocations: { [key: string]: UsersMap } = {};
+  let locationNamesToFetch: string[] = [];
 
-  for (const [key, valueObj] of Object.entries(locations)) {
-    if (key === 'Washington D.C.') {
-      mappedLocations[key] = valueObj;
+  for (const locationName of locationNames) {
+    if (locationName === 'Washington D.C.') {
+      mappedLocations[locationName] = locations[locationName];
       continue;
     }
-    let placeNameParts = await getCachedLocationMapping(key);
 
-    if (!placeNameParts) {
-      console.log(`Fetching mapping for ${key}`);
+    const cachedMapping: LocationMapping | null = await getCachedLocationMapping(locationName);
 
-      try {
-        placeNameParts = await fetchLocationMapping(key);
-        if (placeNameParts) {
-          await setCachedLocationMapping(key, placeNameParts);
-        } else {
-          console.log(`No place name found for ${key}`);
-          await setCachedLocationMapping(key, [key]);
-
-          mappedLocations[key] = valueObj;
-          continue;
-        }
-      } catch (error) {
-        console.error(`Error fetching location data for ${key}: ${error}`);
-        mappedLocations[key] = valueObj;
-        continue;
-      }
+    if (cachedMapping) {
+      mappedLocations = addAddressParts(
+        locations[locationName],
+        cachedMapping.addressParts,
+        mappedLocations
+      );
     } else {
-      console.log(`Using cached mapping for ${key}`);
-    }
-
-    for (const placeNamePart of placeNameParts as string[]) {
-      if (!mappedLocations[placeNamePart]) {
-        mappedLocations[placeNamePart] = valueObj;
-      } else {
-        mappedLocations[placeNamePart] = {
-          ...mappedLocations[placeNamePart],
-          ...valueObj,
-        };
-      }
+      locationNamesToFetch.push(locationName);
     }
   }
+
+  // Split locationNamesToFetch into batches and process each batch
+  const batchSize = 30;
+  let batchPromises = [];
+  for (let i = 0; i < locationNamesToFetch.length; i += batchSize) {
+    const batch = locationNamesToFetch.slice(i, i + batchSize);
+    batchPromises.push(processBatch(batch));
+  }
+
+  const batchMappings = await Promise.all(batchPromises);
+
+  // Merge results from all batches
+  batchMappings.forEach((batchResult) => {
+    Object.keys(batchResult).forEach((locationName) => {
+      const locationData = batchResult[locationName];
+      const addressParts = locationData.addressParts;
+      mappedLocations = addAddressParts(locations[locationName], addressParts, mappedLocations);
+    });
+  });
 
   return mappedLocations;
 };

@@ -59,7 +59,6 @@ export const StorageProvider = ({ children }) => {
 
       setTwitterHandle(result?.['twitterHandle'] || '');
       setEnableLists(result?.['enableLists'] || false);
-      console.log(result?.['userData']);
       setUserData(result?.['userData'] || null);
     };
 
@@ -99,17 +98,17 @@ export const StorageProvider = ({ children }) => {
     }
   };
 
-  const setUserDataInStorage = (userData) => {
-    setLocalStorage({ userData });
-    setUserData(userData);
-  };
-
   return (
     <TwitterHandleContext.Provider
       value={useMemo(
         () => ({
           twitterHandle,
           setTwitterHandle: (twitterHandle) => {
+            const setUserDataInStorage = (userData) => {
+              setLocalStorage({ userData });
+              setUserData(userData);
+            };
+
             setTwitterHandle((prevHandle) => {
               if (prevHandle !== twitterHandle) {
                 setUserDataInStorage(null);
@@ -119,7 +118,7 @@ export const StorageProvider = ({ children }) => {
             });
           },
         }),
-        [twitterHandle]
+        [twitterHandle, setTwitterHandle]
       )}
     >
       <EnableListsContext.Provider

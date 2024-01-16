@@ -54,7 +54,7 @@ export const Config = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       twitterHandle: '',
-      enableLists: false,
+      enableLists: true,
     },
   });
 

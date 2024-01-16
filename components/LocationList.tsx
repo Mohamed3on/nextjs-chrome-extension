@@ -119,7 +119,7 @@ export const LocationList = () => {
                 </CardHeader>
 
                 <CardFooter className='flex justify-between'>
-                  <div className='flex -space-x-3  justify-center'>
+                  <div className='flex -space-x-2  justify-center'>
                     {Object.values(location.users)
                       .slice(0, 8)
                       .sort((a, b) => b.followers - a.followers)
@@ -127,7 +127,7 @@ export const LocationList = () => {
                         <Avatar key={user.screen_name} className='h-7 w-7'>
                           <AvatarImage
                             src={user.avatar}
-                            className='hover:opacity-60 transition-opacity ease-in-out duration-100 cursor-pointer '
+                            className='hover:opacity-60 transition-opacity ease-in-out duration-100 cursor-pointer blur-[1px]'
                           />
                           <AvatarFallback>TTF</AvatarFallback>
                         </Avatar>

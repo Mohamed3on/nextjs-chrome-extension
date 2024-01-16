@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import React, { createContext, useState, useEffect } from 'react';
 import { User, UsersMap } from '@/components/LocationsWrapper';
-import { processLocations, getMappedLocations } from '@/utils/data';
+import { getMappedLocations, processLocations } from '@/utils/data';
 import { useEnableListsContext, useUserDataContext } from '@/lib/StorageContext';
 
 export const LocationsContext = createContext(null);
@@ -42,6 +42,21 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
   const userData = useUserDataContext();
 
   const { enableLists } = useEnableListsContext();
+
+  const setDataWithProcessedLocations = (locations: { [key: string]: UsersMap }) => {
+    const sortedData = Object.entries(locations)
+      .sort(([, a], [, b]) => Object.keys(b).length - Object.keys(a).length)
+
+      .map(([location, items]) => ({
+        location,
+        users: items,
+      }));
+    setData({
+      locations: locations,
+      sortedLocations: sortedData,
+      userListData: userData?.['userListData'] || [],
+    });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,29 +100,15 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
           // filter out locations with only one user
 
           const filtered = Object.fromEntries(
-            Object.entries(processedLocations).filter(([, items]: [string, UsersMap]) => {
-              return Object.keys(items).length > 1;
-            })
+            Object.entries(processedLocations).filter(([, items]) => Object.keys(items).length > 1)
           );
 
+          setDataWithProcessedLocations(filtered);
+
           const newLocations = await getMappedLocations(filtered);
-
-          const sortedData = Object.entries(newLocations)
-
-            .sort(
-              ([, a]: [string, UsersMap], [, b]: [string, UsersMap]) =>
-                Object.keys(b).length - Object.keys(a).length
-            )
-            .map(([location, items]: [string, UsersMap]) => ({
-              location,
-              users: items,
-            }));
-
-          setData({
-            locations: newLocations,
-            sortedLocations: sortedData,
-            userListData: userListData || [],
-          });
+          if (newLocations) {
+            setDataWithProcessedLocations(newLocations);
+          }
         } else {
           setData({
             locations: {},
