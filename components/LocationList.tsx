@@ -12,6 +12,32 @@ import { useEnableListsContext } from '@/lib/StorageContext';
 
 import React from 'react';
 
+const HeaderSection = () => {
+  const { sortedLocations } = useLocationContext();
+  const tweetText = `Most of my Twitter friends live in:%0A%0A${sortedLocations
+    .slice(0, 3)
+    .map((location, index) => `${index + 1}. ${location.location}`)
+    .join('%0A')}.%0A%0ACheck out where your friends live at https://tribefinder.app`;
+
+  return (
+    <div>
+      <h1 className='text-5xl font-extrabold mb-6 text-center text-gradient'>
+        Where do your twitter friends live?
+      </h1>
+      <a
+        className='flex items-center justify-center py-4 px-6 mb-6 max-w-sm mx-auto cta-gradient text-white font-semibold rounded-md shadow-md hover:shadow-lg
+active:scale-95 transition-transform ease-in-out duration-100
+focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50 text-lg'
+        href={`https://twitter.com/intent/tweet?text=${tweetText}`}
+        target='_blank'
+        rel='noreferrer'
+      >
+        Share the results on Twitter!
+      </a>
+    </div>
+  );
+};
+
 const ListsSection = () => {
   const { userListData } = useLocationContext();
 
@@ -79,26 +105,9 @@ export const Wrapper = ({ children }) => {
 export const LocationList = () => {
   const { sortedLocations } = useLocationContext();
 
-  const tweetText = `Most of my Twitter friends live in:%0A%0A${sortedLocations
-    .slice(0, 3)
-    .map((location, index) => `${index + 1}. ${location.location}`)
-    .join('%0A')}.%0A%0ACheck out where your friends live at https://tribefinder.app`;
-
   return (
     <Wrapper>
-      <h1 className='text-5xl font-extrabold mb-6 text-center text-gradient'>
-        Where do your twitter friends live?
-      </h1>
-      <a
-        className='flex items-center justify-center py-4 px-6 mb-6 max-w-sm mx-auto cta-gradient text-white font-semibold rounded-md shadow-md hover:shadow-lg
-        active:scale-95 transition-transform ease-in-out duration-100
-        focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50 text-lg'
-        href={`https://twitter.com/intent/tweet?text=${tweetText}`}
-        target='_blank'
-        rel='noreferrer'
-      >
-        Share the results on Twitter!
-      </a>
+      <HeaderSection></HeaderSection>
 
       <ListsSection />
 

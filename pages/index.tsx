@@ -9,6 +9,7 @@ import {
   useEnableListsContext,
   useTwitterHandleContext,
 } from '@/lib/StorageContext';
+import { ProProvider } from '@/lib/ProContext';
 
 export function Home() {
   const [route, setRoute] = useState('');
@@ -91,9 +92,11 @@ export function Home() {
 }
 
 const WithStorage = () => (
-  <StorageProvider>
-    <Home />
-  </StorageProvider>
+  <ProProvider>
+    <StorageProvider>
+      <Home />
+    </StorageProvider>
+  </ProProvider>
 );
 
 export default WithStorage;
