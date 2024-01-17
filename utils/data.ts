@@ -5,6 +5,16 @@ interface LocationMapping {
   coordinates?: number[];
 }
 
+// Precompile Regular Expressions outside of the function
+const irrelevantRegex = new RegExp(
+  'home|subscribe|\\.com|\\.net|\\.org|\\.eth|solana|sphere|zoom|join|sign up|ethereum|👉|newsletter|free|\\.ai|everywhere|online|⬇️|127\\.0\\.0\\.1|they\\/them|he\\/him|http|she\\/her|earth|worldwide|global|🟩|internet|ios|🌴|🍁|\\bhere\\b|\\d+°|🇪🇺|cloud|future|moon|web|network|remote|international|youtube|metaverse|monday|crypto|space|anywhere|beyond/',
+  'i'
+);
+
+const removeRegex = new RegExp('europe|(?:the\\s+)?world|🌎|🌍|🌏|🌐|☁️|!', 'g');
+const uniqueLocationRegex = new RegExp('\\b(alexandria|cambridge)\\b', 'gi');
+const coordsRegex = /-?\d+\.\d+,-?\d+\.\d+/g;
+
 export function titleCaseWithAcronyms(str) {
   // If the location is an acronym, Uppercase it (SF, USA, UK, etc.)
   if (str.length <= 3) {
@@ -146,31 +156,23 @@ const getLocationParts = (location, alsoSplitComma = true) => {
     .filter((l) => l !== '');
 };
 
-export const processLocation = (location: string) => {
+export const processLocation = (location) => {
   const lowerCaseLocation = location.toLowerCase();
 
-  // Combine irrelevant substrings into a single regex for efficiency
-  const irrelevantRegex =
-    /home|subscribe|\.com|\.net|\.org|\.eth|solana|sphere|zoom|join|sign up|ethereum|👉|newsletter|free|\.ai|everywhere|online|⬇️|127\.0\.0\.1|they\/them|he\/him|http|she\/her|earth|worldwide|global|🟩|internet|ios|🌴|🍁|\bhere\b|\d+°|🇪🇺|cloud|future|moon|web|network|remote|international|youtube|metaverse|monday|crypto|space|anywhere|beyond/;
-
   // Early return for irrelevant locations
-  if (irrelevantRegex.test(lowerCaseLocation)) {
+  if (irrelevantRegex.test(lowerCaseLocation) || coordsRegex.test(lowerCaseLocation)) {
     return null;
   }
 
   // Remove specific terms
-  const removeRegex = /europe|(?:the\s+)?world|🌎|🌍|🌏|🌐|☁️|!/g;
-
   let processedLocation = lowerCaseLocation.replace(removeRegex, '');
-
-  // Handle coordinates
-  const coords = processedLocation.match(/-?\d+\.\d+,-?\d+\.\d+/g);
-  if (coords) {
-    return coords;
-  }
 
   if (processedLocation.includes('washington, ')) {
     return ['washington dc'];
+  }
+
+  if (uniqueLocationRegex.test(processedLocation)) {
+    return getLocationParts(processedLocation, false);
   }
 
   // Further process the location string

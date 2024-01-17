@@ -1,5 +1,5 @@
-import { ProgressBar } from '@/components/ProgressBar';
 import { useTwitterHandleContext, useUserDataContext } from '@/lib/StorageContext';
+import { LoaderIcon } from 'lucide-react';
 import React, { useEffect } from 'react';
 
 export const Refresh = () => {
@@ -60,7 +60,8 @@ export const Refresh = () => {
   }
   return refreshing ? (
     <div className='flex items-center justify-center flex-col gap-7'>
-      <ProgressBar />
+      <LoaderIcon className='w-16 h-16 text-gray-400 animate-spin' />
+
       <h1 className='text-2xl font-bold text-center text-gray-400'>
         Crunching the data for @{twitterHandle}, please wait
       </h1>

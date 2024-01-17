@@ -59,6 +59,8 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
   };
 
   useEffect(() => {
+    let isMounted = true; // Flag to manage async calls
+
     const fetchData = async () => {
       try {
         if (userData) {
@@ -106,7 +108,7 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
           setDataWithProcessedLocations(filtered);
 
           const newLocations = await getMappedLocations(filtered);
-          if (newLocations) {
+          if (newLocations && isMounted) {
             setDataWithProcessedLocations(newLocations);
           }
         } else {
@@ -122,6 +124,10 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
     };
 
     fetchData();
+
+    return () => {
+      isMounted = false; // Clean up the flag when the component unmounts
+    };
   }, [enableLists, userData]);
 
   return <LocationsContext.Provider value={{ ...data }}>{children}</LocationsContext.Provider>;
