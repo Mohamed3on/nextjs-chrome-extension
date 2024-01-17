@@ -45,6 +45,7 @@ export const useUserDataContext = () => {
 export const StorageProvider = ({ children }) => {
   const [twitterHandle, setTwitterHandle] = useState('');
   const [enableLists, setEnableLists] = useState(false);
+
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {

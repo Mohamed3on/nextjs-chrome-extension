@@ -1,5 +1,3 @@
-const userData = {};
-
 chrome.runtime.onMessage.addListener(({ message }, sender, sendResponse) => {
   if (message === 'refresh') {
     console.log('refreshing data...');
@@ -134,11 +132,35 @@ const run = async () => {
 
   try {
     const getPopularFriendsLocations = async () => {
+      let userData = {};
+
+      // TODO: cache data per user?
+      // try {
+      //   const cachedData = await readLocalStorage('userData');
+
+      //   if (cachedData) {
+      //     console.log('using cached data...');
+      //     userData = cachedData;
+      //   }
+      // } catch (error) {
+      //   userData = {};
+      // }
+
       console.log('fetching following list...');
       let friendsList = await fetchFollowingList(screen_name);
       userData.friends = friendsList.map(processUser);
 
       let userLists = [];
+
+      chrome.storage.local.set(
+        {
+          userData,
+        },
+        function () {
+          console.log('Friend data is saved in local storage.');
+        }
+      );
+
       try {
         userLists = await fetchUserLists(screen_name);
 
@@ -160,18 +182,18 @@ const run = async () => {
         userData.userListData = await Promise.all(userListData);
 
         console.log(`fetched ${userData.userListData.length} lists`);
+
+        chrome.storage.local.set(
+          {
+            userData,
+          },
+          function () {
+            console.log('List data is saved in local storage.');
+          }
+        );
       } catch (error) {
         console.log('error fetching lists:', error);
       }
-
-      chrome.storage.local.set(
-        {
-          userData,
-        },
-        function () {
-          console.log('Location data is saved in local storage.');
-        }
-      );
     };
 
     await getPopularFriendsLocations();

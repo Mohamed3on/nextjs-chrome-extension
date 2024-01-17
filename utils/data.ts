@@ -313,7 +313,7 @@ export const getMappedLocations = async (locations: { [key: string]: UsersMap })
   }
 
   // Split locationNamesToFetch into batches and process each batch
-  const batchSize = 30;
+  const batchSize = 40;
   try {
     let batchPromises = [];
     for (let i = 0; i < locationNamesToFetch.length; i += batchSize) {

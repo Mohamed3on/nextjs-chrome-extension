@@ -6,7 +6,7 @@ function MyApp({ Component, pageProps }) {
   return (
     <div>
       <Head>
-        <title>Twitter Friends Mapper</title>
+        <title>Tribe Finder</title>
         <link rel='icon' type='image/svg+xml' href='/logo.svg' />
       </Head>
       <main className={`font-sans min-h-screen bg-background min-w-fit px-10 dark`}>
