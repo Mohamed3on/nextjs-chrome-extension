@@ -221,12 +221,13 @@ const run = async () => {
 
   await run()
     .then(() => {
+      lastAutoRefreshObj[screen_name] = new Date().toISOString();
       chrome.storage.local.set(
         {
-          lastAutoRefresh: new Date().toISOString(),
+          lastAutoRefresh: lastAutoRefreshObj,
         },
         function () {
-          console.log('Friend data is saved in local storage.');
+          console.log(`Auto-refresh time updated for ${screen_name} in local storage.`);
         }
       );
     })
