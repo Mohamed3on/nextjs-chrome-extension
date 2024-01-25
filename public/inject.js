@@ -124,13 +124,8 @@ const processUser = (user) => {
 };
 
 const run = async () => {
-  const screen_name = await readLocalStorage('twitterHandle');
-  if (!screen_name) {
-    console.log('No twitter handle was provided, aborting...');
-    return;
-  }
-
   try {
+    const screen_name = await readLocalStorage('twitterHandle');
     const getPopularFriendsLocations = async () => {
       let userData = {};
 
@@ -204,7 +199,38 @@ const run = async () => {
 };
 
 (async () => {
-  await run().catch((error) => {
-    console.log('error, user probably private or does not exist', error);
-  });
+  const screen_name = await readLocalStorage('twitterHandle');
+  if (!screen_name) {
+    console.log('No twitter handle was provided, aborting...');
+    return;
+  }
+
+  const lastAutoRefreshObj = (await readLocalStorage('lastAutoRefresh')) || {};
+  const lastAutoRefresh = lastAutoRefreshObj[screen_name];
+
+  if (lastAutoRefresh) {
+    const lastAutoRefreshDate = new Date(lastAutoRefresh);
+    const today = new Date();
+    const hourDiff = Math.abs(today - lastAutoRefreshDate) / 36e5;
+
+    if (hourDiff < 24) {
+      console.log(`Last auto refresh for ${screen_name} was less than 24 hours ago, aborting...`);
+      return;
+    }
+  }
+
+  await run()
+    .then(() => {
+      chrome.storage.local.set(
+        {
+          lastAutoRefresh: new Date().toISOString(),
+        },
+        function () {
+          console.log('Friend data is saved in local storage.');
+        }
+      );
+    })
+    .catch((error) => {
+      console.log('error, user probably private or does not exist', error);
+    });
 })();

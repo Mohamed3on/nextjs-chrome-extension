@@ -9,7 +9,7 @@ function MyApp({ Component, pageProps }) {
         <title>Tribe Finder</title>
         <link rel='icon' type='image/svg+xml' href='/logo.svg' />
       </Head>
-      <main className={`font-sans min-h-screen bg-background min-w-fit px-10 dark`}>
+      <main className={`dark font-sans min-h-screen bg-background min-w-fit px-10 `}>
         <Component {...pageProps} />
         <Toaster />
       </main>

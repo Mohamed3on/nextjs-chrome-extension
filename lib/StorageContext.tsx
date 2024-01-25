@@ -8,7 +8,10 @@ export const TwitterHandleContext = createContext({
 });
 export const EnableListsContext = createContext({
   enableLists: false,
+  excludedLists: [],
   setEnableLists: (enableLists: boolean) => {},
+  excludeList: (listId: string) => {},
+  removeListExclusion: (listId: string) => {},
 });
 export const UserDataContext = createContext(null);
 
@@ -45,6 +48,7 @@ export const useUserDataContext = () => {
 export const StorageProvider = ({ children }) => {
   const [twitterHandle, setTwitterHandle] = useState('');
   const [enableLists, setEnableLists] = useState(false);
+  const [excludedLists, setExcludedLists] = useState([]);
 
   const [userData, setUserData] = useState(null);
 
@@ -53,7 +57,12 @@ export const StorageProvider = ({ children }) => {
     const fetchData = async () => {
       let result = {};
       try {
-        result = await readLocalStorage(['twitterHandle', 'enableLists', 'userData']);
+        result = await readLocalStorage([
+          'twitterHandle',
+          'enableLists',
+          'userData',
+          'excludedLists',
+        ]);
       } catch (error) {
         console.log('no user data was found yet');
       }
@@ -61,6 +70,7 @@ export const StorageProvider = ({ children }) => {
       setTwitterHandle(result?.['twitterHandle'] || '');
       setEnableLists(result?.['enableLists'] || false);
       setUserData(result?.['userData'] || null);
+      setExcludedLists(result?.['excludedLists'] || []);
     };
 
     fetchData();
@@ -130,8 +140,20 @@ export const StorageProvider = ({ children }) => {
               setLocalStorage({ enableLists });
               setEnableLists(enableLists);
             },
+            excludedLists,
+            excludeList: (listId) => {
+              setLocalStorage({ excludedLists: [...excludedLists, listId] });
+              setExcludedLists((prev) => [...prev, listId]);
+            },
+
+            removeListExclusion: (listId) => {
+              setLocalStorage({
+                excludedLists: excludedLists.filter((id) => id !== listId),
+              });
+              setExcludedLists((prev) => prev.filter((id) => id !== listId));
+            },
           }),
-          [enableLists]
+          [enableLists, setEnableLists, excludedLists, setExcludedLists]
         )}
       >
         <UserDataContext.Provider value={userData}>{children}</UserDataContext.Provider>

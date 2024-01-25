@@ -28,6 +28,8 @@ export type LocationsContextProps = {
     avatar: string;
     id: string;
   }[];
+
+  numberOfFriends?: number;
 };
 
 export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.memo(function ({
@@ -39,9 +41,53 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
     userListData: [],
   });
 
+  const [users, setUsers] = useState<UsersMap>({});
+
   const userData = useUserDataContext();
 
-  const { enableLists } = useEnableListsContext();
+  const { enableLists, excludedLists } = useEnableListsContext();
+
+  useEffect(() => {
+    if (userData) {
+      // Initialize an empty object to store user data
+      let usersMap = {};
+
+      const friends = userData?.['friends'];
+
+      const userListData: {
+        name: string;
+        users: User[];
+        avatar: string;
+        id: string;
+      }[] = userData?.['userListData'];
+
+      if (userListData && enableLists) {
+        userListData.forEach((list) => {
+          if (excludedLists.includes(list.id)) {
+            return;
+          }
+          list.users.forEach((user) => {
+            if (!usersMap[user.screen_name]) {
+              usersMap[user.screen_name] = { ...user, lists: [list.id], isFriend: false };
+            } else {
+              usersMap[user.screen_name].lists.push(list.id);
+            }
+          });
+        });
+      }
+
+      // Process friends
+      friends.forEach((friend) => {
+        if (!usersMap[friend.screen_name]) {
+          usersMap[friend.screen_name] = { ...friend, lists: [], isFriend: true };
+        } else {
+          usersMap[friend.screen_name].isFriend = true;
+        }
+      });
+
+      setUsers(usersMap);
+    }
+  }, [userData, enableLists, excludedLists]);
 
   const setDataWithProcessedLocations = (locations: { [key: string]: UsersMap }) => {
     const sortedData = Object.entries(locations)
@@ -55,6 +101,7 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
       locations: locations,
       sortedLocations: sortedData,
       userListData: userData?.['userListData'] || [],
+      numberOfFriends: Object.keys(users).length,
     });
   };
 
@@ -63,44 +110,12 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
 
     const fetchData = async () => {
       try {
-        if (userData) {
-          const userListData: {
-            name: string;
-            users: User[];
-            avatar: string;
-            id: string;
-          }[] = userData?.['userListData'];
-          const friends = userData?.['friends'];
-
-          // Initialize an empty object to store user data
-          let usersMap = {};
-
-          if (userListData && enableLists) {
-            userListData.forEach((list) =>
-              list.users.forEach((user) => {
-                if (!usersMap[user.screen_name]) {
-                  usersMap[user.screen_name] = { ...user, lists: [list.id], isFriend: false };
-                } else {
-                  usersMap[user.screen_name].lists.push(list.id);
-                }
-              })
-            );
-          }
-
-          // Process friends
-          friends.forEach((friend) => {
-            if (!usersMap[friend.screen_name]) {
-              usersMap[friend.screen_name] = { ...friend, lists: [], isFriend: true };
-            } else {
-              usersMap[friend.screen_name].isFriend = true;
-            }
-          });
-
+        if (users) {
           const processedLocations: {
             [key: string]: UsersMap;
-          } = processLocations(Object.values(usersMap));
-          // filter out locations with only one user
+          } = processLocations(Object.values(users));
 
+          // filter out locations with only one user
           const filtered = Object.fromEntries(
             Object.entries(processedLocations).filter(([, items]) => Object.keys(items).length > 1)
           );
@@ -128,7 +143,9 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
     return () => {
       isMounted = false; // Clean up the flag when the component unmounts
     };
-  }, [enableLists, userData]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [users]);
 
   return <LocationsContext.Provider value={{ ...data }}>{children}</LocationsContext.Provider>;
 });

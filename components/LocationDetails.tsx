@@ -69,20 +69,25 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
                     <span className='text-gray-400'>{`@${user.screen_name}`}</span>
                   </div>
 
-                  {user.lists.map((id) => {
-                    const list = userListData.find((list) => list.id === id);
-                    return (
-                      <div key={list.id} className='text-sm mt-2 flex'>
-                        <div className='rounded-full bg-gray-200  p-1 flex justify-between items-center gap-1 pr-2'>
-                          <Avatar className='h-6 w-6'>
-                            <AvatarImage src={list.avatar} />
-                            <AvatarFallback>TTF</AvatarFallback>
-                          </Avatar>
-                          <span className='text-sm font-semibold text-gray-800'>{list.name}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {user.lists.length > 0 && (
+                    <div className='mt-2 flex gap-1'>
+                      {user.lists.map((id) => {
+                        const list = userListData.find((list) => list.id === id);
+                        return (
+                          <div key={list.id}>
+                            <div className='rounded-full bg-gray-200  p-1 flex justify-between items-center gap-1 pr-2'>
+                              <Avatar className='h-6 w-6'>
+                                <AvatarImage src={list.avatar} />
+                              </Avatar>
+                              <span className='text-sm font-semibold text-gray-800'>
+                                {list.name}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className='flex flex-col items-end'>

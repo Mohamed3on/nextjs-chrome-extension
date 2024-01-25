@@ -1,5 +1,18 @@
 import { useProContext } from '@/lib/ProContext';
 import React from 'react';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@radix-ui/react-label';
 
 export const NavBar = ({ userName }: { userName: string }) => {
   const { isPro } = useProContext();
@@ -33,14 +46,40 @@ export const NavBar = ({ userName }: { userName: string }) => {
               :
             </div>
           ) : (
-            <a
-              href='https://tribefinder.app'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='bg-green-500 text-white font-semibold rounded-full px-2.5 py-0.5 shine-on-hover cursor-pointer'
-            >
-              GO PRO
-            </a>
+            <Dialog>
+              <DialogTrigger>
+                <span className='bg-green-500 text-white font-semibold rounded-full px-2.5 py-0.5 shine-on-hover cursor-pointer'>
+                  GO PRO
+                </span>
+              </DialogTrigger>
+              <DialogContent className='sm:max-w-md'>
+                <DialogHeader>
+                  <DialogTitle>Share link</DialogTitle>
+                  <DialogDescription>
+                    Anyone who has this link will be able to view this.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className='flex items-center space-x-2'>
+                  <div className='grid flex-1 gap-2'>
+                    <Label htmlFor='link' className='sr-only'>
+                      Link
+                    </Label>
+                    <Input
+                      id='link'
+                      defaultValue='https://ui.shadcn.com/docs/installation'
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <DialogFooter className='sm:justify-start'>
+                  <DialogClose asChild>
+                    <Button type='button' variant='secondary'>
+                      Close
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           )}
         </div>
       </nav>
