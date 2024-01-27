@@ -1,7 +1,11 @@
 import { UsersMap } from '@/components/LocationsWrapper';
 
+interface LocationPart {
+  placeType: string;
+  text: string;
+}
 interface LocationMapping {
-  addressParts: string[];
+  addressParts: LocationPart[];
   coordinates?: number[];
 }
 
@@ -265,11 +269,12 @@ const fetchLocationMappings = async (locations) => {
 
 const addAddressParts = (originalValue, placeNameParts, mappedLocations) => {
   for (const placeNamePart of placeNameParts) {
-    if (!mappedLocations[placeNamePart]) {
-      mappedLocations[placeNamePart] = originalValue;
+    const placeNameText = placeNamePart.text;
+    if (!mappedLocations[placeNameText]) {
+      mappedLocations[placeNameText] = originalValue;
     } else {
-      mappedLocations[placeNamePart] = {
-        ...mappedLocations[placeNamePart],
+      mappedLocations[placeNameText] = {
+        ...mappedLocations[placeNameText],
         ...originalValue,
       };
     }
@@ -327,7 +332,9 @@ export const getMappedLocations = async (locations: { [key: string]: UsersMap })
     batchMappings.forEach((batchResult) => {
       Object.keys(batchResult).forEach((locationName) => {
         const locationData = batchResult[locationName];
+
         const addressParts = locationData.addressParts;
+
         mappedLocations = addAddressParts(locations[locationName], addressParts, mappedLocations);
       });
     });

@@ -120,8 +120,6 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
             Object.entries(processedLocations).filter(([, items]) => Object.keys(items).length > 1)
           );
 
-          setDataWithProcessedLocations(filtered);
-
           const newLocations = await getMappedLocations(filtered);
           if (newLocations && isMounted) {
             setDataWithProcessedLocations(newLocations);

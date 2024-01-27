@@ -19,8 +19,6 @@ export const ListsSection = () => {
 
   if (userListData.length === 0) return null;
 
-  console.log(excludedLists);
-
   if (!enableLists) {
     return (
       <div className='mb-4'>

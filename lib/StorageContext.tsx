@@ -123,6 +123,7 @@ export const StorageProvider = ({ children }) => {
             setTwitterHandle((prevHandle) => {
               if (prevHandle !== twitterHandle) {
                 setUserDataInStorage(null);
+                setLocalStorage({ lastAutoRefresh: {} });
               }
               setLocalStorage({ twitterHandle });
               return twitterHandle;

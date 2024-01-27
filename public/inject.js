@@ -157,35 +157,44 @@ const run = async () => {
       );
 
       try {
+        console.log('fetching lists...');
         userLists = await fetchUserLists(screen_name);
 
-        const userListData = await userLists.map(async (list) => {
-          const listMemebers = await fetchListMembers(list.id_str);
+        // Use Promise.allSettled to handle each promise individually
+        await Promise.allSettled(
+          userLists.map(async (list) => {
+            try {
+              const listMembers = await fetchListMembers(list.id_str);
 
-          return {
-            name: list.name,
-            id: list.id_str,
-            follower_count: list.subscriber_count,
-            member_count: list.member_count,
-            creator: list.user.screen_name,
-            avatar: list.user.profile_image_url_https.replace('_normal', ''),
-            url: `https://twitter.com/i/lists/${list.id_str}`,
-            users: listMemebers.users.map(processUser),
-          };
-        });
+              // Prepare the data object
+              const userDataObject = {
+                name: list.name,
+                id: list.id_str,
+                follower_count: list.subscriber_count,
+                member_count: list.member_count,
+                creator: list.user.screen_name,
+                avatar: list.user.profile_image_url_https.replace('_normal', ''),
+                url: `https://twitter.com/i/lists/${list.id_str}`,
+                users: listMembers.users.map(processUser),
+              };
 
-        userData.userListData = await Promise.all(userListData);
+              // Update userData with the new data
+              if (!userData.userListData) {
+                userData.userListData = [];
+              }
+              userData.userListData.push(userDataObject);
+
+              // Save userData to local storage
+              chrome.storage.local.set({ userData }, function () {
+                console.log(`List data for list ${list.name} saved in local storage.`);
+              });
+            } catch (error) {
+              console.log(`Error fetching list ${list.name}:`, error);
+            }
+          })
+        );
 
         console.log(`fetched ${userData.userListData.length} lists`);
-
-        chrome.storage.local.set(
-          {
-            userData,
-          },
-          function () {
-            console.log('List data is saved in local storage.');
-          }
-        );
       } catch (error) {
         console.log('error fetching lists:', error);
       }

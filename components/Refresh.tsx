@@ -30,11 +30,10 @@ export const Refresh = () => {
               }
             });
           } catch (error) {
-            // runs inject.js to fetch the new data
-
             console.log(error);
           }
         } else {
+          // runs inject.js to fetch the new data
           chrome.tabs.create({ url: `https://twitter.com/`, active: false });
         }
       });
