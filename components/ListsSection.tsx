@@ -66,29 +66,7 @@ export const ListsSection = () => {
                   >
                     {list.name}
                   </label>
-                  {/* {!excludedLists.includes(list.id) && (
-                      <Button
-                        onClick={() => {
-                          excludeList(list.id);
-                        }}
-                        variant='link'
-                        className='text-xs p-0 text-red-400'
-                      >
-                        Disable
-                      </Button>
-                    )}
 
-                    {excludedLists.includes(list.id) && (
-                      <Button
-                        onClick={() => {
-                          removeListExclusion(list.id);
-                        }}
-                        variant='link'
-                        className='text-xs p-0'
-                      >
-                        Enable
-                      </Button>
-                    )} */}
                   <Avatar className='h-6 w-6'>
                     <AvatarImage src={list.avatar} />
                   </Avatar>

@@ -37,6 +37,12 @@ focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50 text-l
 export const Wrapper = ({ children }) => {
   return <div className=' text-gray-200 p-8 w-full rounded-lg shadow-lg'>{children}</div>;
 };
+
+const locationTypeToColorClassname = {
+  city: 'bg-blue-200 hover:bg-blue-300 text-blue-800',
+  region: 'bg-yellow-200 hover:bg-yellow-300 text-yellow-800',
+  country: 'bg-green-200 hover:bg-green-300 text-green-800',
+};
 export const LocationList = () => {
   const { sortedLocations, numberOfFriends, locationToTypeMapping } = useLocationContext();
 
@@ -69,7 +75,7 @@ export const LocationList = () => {
                         <span>{location.location}</span>
                       </div>
                       {locationType && (
-                        <Badge className='bg-green-200 hover:bg-green-300 text-green-800'>
+                        <Badge className={`${locationTypeToColorClassname[locationType]}`}>
                           <span>{locationType}</span>
                         </Badge>
                       )}
