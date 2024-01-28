@@ -79,14 +79,7 @@ export const StorageProvider = ({ children }) => {
     const handleStorageChange = (changes, areaName) => {
       // Handle changes
       if (areaName === 'local') {
-        if (changes.hasOwnProperty('twitterHandle')) {
-          toast('Please wait while we fetch your data', {
-            description:
-              'This might take a few seconds. Please do not close the open twitter tab in the meantime',
-            duration: 5000,
-            dismissible: true,
-          });
-        } else if (changes.hasOwnProperty('userData')) {
+        if (changes.hasOwnProperty('userData')) {
           setUserData(changes?.['userData']?.newValue || null);
         }
       }
@@ -115,17 +108,24 @@ export const StorageProvider = ({ children }) => {
         () => ({
           twitterHandle,
           setTwitterHandle: (twitterHandle) => {
-            const setUserDataInStorage = (userData) => {
-              setLocalStorage({ userData });
-              setUserData(userData);
-            };
-
             setTwitterHandle((prevHandle) => {
               if (prevHandle !== twitterHandle) {
-                setUserDataInStorage(null);
-                setLocalStorage({ lastAutoRefresh: {} });
+                toast('Please wait while we fetch your data', {
+                  description:
+                    'This might take a few seconds. Please do not close the open twitter tab in the meantime',
+                  duration: 5000,
+                  dismissible: true,
+                });
+                setUserData(null);
+                setExcludedLists([]);
+                setLocalStorage({
+                  lastAutoRefresh: {},
+                  userData: null,
+                  excludedLists: [],
+                  twitterHandle,
+                });
               }
-              setLocalStorage({ twitterHandle });
+
               return twitterHandle;
             });
           },

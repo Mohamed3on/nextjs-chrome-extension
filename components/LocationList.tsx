@@ -6,6 +6,7 @@ import React from 'react';
 import { ListsSection } from './ListsSection';
 import { cn } from '@/lib/utils';
 import { useProContext } from '@/lib/ProContext';
+import { Badge } from '@/components/ui/badge';
 
 const HeaderSection = () => {
   const { sortedLocations } = useLocationContext();
@@ -37,7 +38,7 @@ export const Wrapper = ({ children }) => {
   return <div className=' text-gray-200 p-8 w-full rounded-lg shadow-lg'>{children}</div>;
 };
 export const LocationList = () => {
-  const { sortedLocations, numberOfFriends } = useLocationContext();
+  const { sortedLocations, numberOfFriends, locationToTypeMapping } = useLocationContext();
 
   const { isPro } = useProContext();
 
@@ -49,6 +50,7 @@ export const LocationList = () => {
 
       <ul className='grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3 max-w-screen-xl'>
         {sortedLocations.map((location, index) => {
+          const locationType = locationToTypeMapping?.[location.location];
           const percentage = Math.round(
             (Object.keys(location.users).length / numberOfFriends) * 100
           );
@@ -61,11 +63,16 @@ export const LocationList = () => {
               hover:text-gray-300 active:text-gray-500 transition-colors ease-in-out'
                 >
                   <CardHeader>
-                    <CardTitle>
+                    <CardTitle className='flex gap-2 items-center'>
                       <div>
                         <span className='mr-1'>#{index + 1}</span>
                         <span>{location.location}</span>
                       </div>
+                      {locationType && (
+                        <Badge className='bg-green-200 hover:bg-green-300 text-green-800'>
+                          <span>{locationType}</span>
+                        </Badge>
+                      )}
                     </CardTitle>
                     <CardDescription>
                       <span>{percentage > 1 ? percentage : '<1'}% of your Twitter friends</span>

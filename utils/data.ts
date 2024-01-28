@@ -293,10 +293,18 @@ const processBatch = async (batch: string[]) => {
   return batchMapping;
 };
 
+const addLocationToTypeMapping = (locationToTypeMapping, addressParts) => {
+  for (const addressPart of addressParts) {
+    const placeType = addressPart.placeType === 'place' ? 'city' : addressPart.placeType;
+    locationToTypeMapping[addressPart.text] = placeType;
+  }
+};
+
 export const getMappedLocations = async (locations: { [key: string]: UsersMap }) => {
   const locationNames = Object.keys(locations);
   let mappedLocations: { [key: string]: UsersMap } = {};
   let locationNamesToFetch: string[] = [];
+  const locationToTypeMapping: { [key: string]: string } = {};
 
   for (const locationName of locationNames) {
     if (locationName === 'Washington D.C.') {
@@ -307,6 +315,7 @@ export const getMappedLocations = async (locations: { [key: string]: UsersMap })
     const cachedMapping: LocationMapping | null = await getCachedLocationMapping(locationName);
 
     if (cachedMapping) {
+      addLocationToTypeMapping(locationToTypeMapping, cachedMapping.addressParts);
       mappedLocations = addAddressParts(
         locations[locationName],
         cachedMapping.addressParts,
@@ -335,11 +344,16 @@ export const getMappedLocations = async (locations: { [key: string]: UsersMap })
 
         const addressParts = locationData.addressParts;
 
+        addLocationToTypeMapping(locationToTypeMapping, addressParts);
+
         mappedLocations = addAddressParts(locations[locationName], addressParts, mappedLocations);
       });
     });
 
-    return mappedLocations;
+    return {
+      mappedLocations,
+      locationToTypeMapping,
+    };
   } catch (error) {
     console.warn('Failed to fetch mappings, returning original locations', error);
     return {
