@@ -11,12 +11,15 @@ interface LocationMapping {
 
 // Precompile Regular Expressions outside of the function
 const irrelevantRegex = new RegExp(
-  'home|subscribe|\\.com|\\.net|\\.org|\\.eth|solana|sphere|zoom|join|sign up|ethereum|👉|newsletter|free|\\.ai|everywhere|online|⬇️|127\\.0\\.0\\.1|they\\/them|he\\/him|http|she\\/her|earth|worldwide|global|🟩|internet|ios|🌴|🍁|\\bhere\\b|\\d+°|🇪🇺|cloud|future|moon|web|network|remote|international|youtube|metaverse|monday|crypto|space|anywhere|beyond/',
+  'home|subscribe|\\.com|\\.net|\\.org|\\.eth|solana|sphere|zoom|join|sign up|ethereum|👉|newsletter|free|\\.ai|everywhere|online|⬇️|127\\.0\\.0\\.1|they\\/them|he\\/him|http|she\\/her|earth|worldwide|global|🟩|internet|ios|🌴|🍁|\\bhere\\b|\\d+°|🇪🇺|cloud|future|moon|web|network|remote|milky way|international|youtube|metaverse|monday|crypto|space|anywhere|beyond/',
   'i'
 );
 
 const removeRegex = new RegExp('europe|(?:the\\s+)?world|🌎|🌍|🌏|🌐|☁️|!', 'g');
-const uniqueLocationRegex = new RegExp('\\b(alexandria|cambridge|victoria)\\b', 'gi');
+const uniqueLocationRegex = new RegExp(
+  '\\b(alexandria|cambridge|victoria|san jose|venice|bend)\\b',
+  'gi'
+);
 const coordsRegex = /-?\d+\.\d+,-?\d+\.\d+/g;
 
 export function titleCaseWithAcronyms(str) {

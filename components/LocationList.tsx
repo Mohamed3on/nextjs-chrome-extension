@@ -62,11 +62,11 @@ export const LocationList = () => {
           );
           return (
             <li key={index}>
-              <Card>
+              <Card className='h-full'>
                 <a
                   href={`#location/${encodeURIComponent(location.location)}`}
                   className='
-              hover:text-gray-300 active:text-gray-500 transition-colors ease-in-out'
+              hover:text-gray-300 active:text-gray-500 transition-colors ease-in-out flex flex-col justify-between h-full'
                 >
                   <CardHeader>
                     <CardTitle className='flex gap-2 items-center'>
