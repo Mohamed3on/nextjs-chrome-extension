@@ -16,7 +16,7 @@ const irrelevantRegex = new RegExp(
 );
 
 const removeRegex = new RegExp('europe|(?:the\\s+)?world|🌎|🌍|🌏|🌐|☁️|!', 'g');
-const uniqueLocationRegex = new RegExp('\\b(alexandria|cambridge)\\b', 'gi');
+const uniqueLocationRegex = new RegExp('\\b(alexandria|cambridge|victoria)\\b', 'gi');
 const coordsRegex = /-?\d+\.\d+,-?\d+\.\d+/g;
 
 export function titleCaseWithAcronyms(str) {
@@ -267,9 +267,17 @@ const fetchLocationMappings = async (locations) => {
   }
 };
 
-const addAddressParts = (originalValue, placeNameParts, mappedLocations) => {
+const addAddressParts = (originalValue, placeNameParts, mappedLocations, locationToTypeMapping) => {
   for (const placeNamePart of placeNameParts) {
-    const placeNameText = placeNamePart.text;
+    let placeNameText = placeNamePart.text;
+
+    if (uniqueLocationRegex.test(placeNameText)) {
+      placeNameText = `${placeNameText}, ${placeNameParts[placeNameParts.length - 1].text}`;
+    }
+
+    const placeType = placeNamePart.placeType === 'place' ? 'city' : placeNamePart.placeType;
+    locationToTypeMapping[placeNameText] = placeType;
+
     if (!mappedLocations[placeNameText]) {
       mappedLocations[placeNameText] = originalValue;
     } else {
@@ -315,11 +323,11 @@ export const getMappedLocations = async (locations: { [key: string]: UsersMap })
     const cachedMapping: LocationMapping | null = await getCachedLocationMapping(locationName);
 
     if (cachedMapping) {
-      addLocationToTypeMapping(locationToTypeMapping, cachedMapping.addressParts);
       mappedLocations = addAddressParts(
         locations[locationName],
         cachedMapping.addressParts,
-        mappedLocations
+        mappedLocations,
+        locationToTypeMapping
       );
     } else {
       locationNamesToFetch.push(locationName);
@@ -344,9 +352,12 @@ export const getMappedLocations = async (locations: { [key: string]: UsersMap })
 
         const addressParts = locationData.addressParts;
 
-        addLocationToTypeMapping(locationToTypeMapping, addressParts);
-
-        mappedLocations = addAddressParts(locations[locationName], addressParts, mappedLocations);
+        mappedLocations = addAddressParts(
+          locations[locationName],
+          addressParts,
+          mappedLocations,
+          locationToTypeMapping
+        );
       });
     });
 
