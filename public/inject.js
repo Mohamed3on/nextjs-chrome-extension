@@ -61,12 +61,18 @@ const makeTwitterApiRequest = async (url, useAlternativeToken = false) => {
 
 const fetchUserLists = async (screen_name) => {
   const url = `https://api.twitter.com/1.1/lists/list.json?screen_name=${screen_name}`;
-  return makeTwitterApiRequest(url);
+  try {
+    const lists = await makeTwitterApiRequest(url);
+    return lists;
+  } catch (error) {
+    return [];
+  }
 };
 
 const fetchListMembers = async (listID) => {
-  const url = `https://api.twitter.com/1.1/lists/members.json?list_id=${listID}&count=5000`;
-  return makeTwitterApiRequest(url);
+  return makeTwitterApiRequest(
+    `https://api.twitter.com/1.1/lists/members.json?list_id=${listID}&count=5000`
+  );
 };
 
 const fetchFollowingList = async (screen_name) => {
@@ -84,35 +90,6 @@ const fetchFollowingList = async (screen_name) => {
   return allFriends;
 };
 
-const processLocation = (location) => {
-  const processedLocations = location
-    .toLowerCase()
-    .split(/\s*[,\/\\&\+|·]+\s*|and\s+/)
-    .map((l) => l.trim())
-    .filter((l) => l);
-
-  return processedLocations;
-};
-
-const addLocations = (theList) => {
-  const locations = {};
-  theList.forEach((member) => {
-    if (member.location) {
-      const processedLocations = processLocation(member.location);
-
-      processedLocations &&
-        processedLocations.forEach((location) => {
-          if (locations[location]) {
-            locations[location] += 1;
-          } else {
-            locations[location] = 1;
-          }
-        });
-    }
-  });
-  return locations;
-};
-
 const processUser = (user) => {
   return {
     name: user.name,
@@ -124,28 +101,20 @@ const processUser = (user) => {
 };
 
 const run = async () => {
+  console.time('fetching data');
   try {
     const screen_name = await readLocalStorage('twitterHandle');
     const getPopularFriendsLocations = async () => {
       let userData = {};
 
-      // TODO: cache data per user?
-      // try {
-      //   const cachedData = await readLocalStorage('userData');
+      console.log('fetching following list and user lists...');
 
-      //   if (cachedData) {
-      //     console.log('using cached data...');
-      //     userData = cachedData;
-      //   }
-      // } catch (error) {
-      //   userData = {};
-      // }
+      let [friendsList, userLists] = await Promise.all([
+        fetchFollowingList(screen_name),
+        fetchUserLists(screen_name),
+      ]);
 
-      console.log('fetching following list...');
-      let friendsList = await fetchFollowingList(screen_name);
       userData.friends = friendsList.map(processUser);
-
-      let userLists = [];
 
       chrome.storage.local.set(
         {
@@ -157,9 +126,10 @@ const run = async () => {
       );
 
       try {
-        console.log('fetching lists...');
-        userLists = await fetchUserLists(screen_name);
-
+        if (!userLists.length) {
+          console.log('No user lists found.');
+          return;
+        }
         // Use Promise.allSettled to handle each promise individually
         await Promise.allSettled(
           userLists.map(async (list) => {
@@ -205,6 +175,8 @@ const run = async () => {
     console.log('Error fetching data:', error);
     throw error;
   }
+
+  console.timeEnd('fetching data');
 };
 
 (async () => {
