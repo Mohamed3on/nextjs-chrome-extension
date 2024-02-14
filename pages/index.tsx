@@ -3,7 +3,7 @@ import { Config } from '../components/Config';
 import { LocationDetails } from '@/components/LocationDetails'; // Import LocationDetails
 import { LocationsWrapper } from '@/components/LocationsWrapper';
 import { LocationsProvider } from '@/lib/LocationContext';
-import { NavBar } from '@/components/ui/NavBar';
+import { NavBar } from '@/components/NavBar';
 import {
   StorageProvider,
   useEnableListsContext,

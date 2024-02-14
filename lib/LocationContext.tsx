@@ -31,6 +31,7 @@ export type LocationsContextProps = {
 
   numberOfFriends?: number;
   locationToTypeMapping?: { [key: string]: string };
+  cityToCountryMapping?: { [key: string]: string };
 };
 
 export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.memo(function ({
@@ -92,7 +93,8 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
 
   const setDataWithProcessedLocations = (
     locations: { [key: string]: UsersMap },
-    locationToTypeMapping
+    locationToTypeMapping,
+    cityToCountryMapping
   ) => {
     const sortedData = Object.entries(locations)
       .sort(([, a], [, b]) => Object.keys(b).length - Object.keys(a).length)
@@ -107,6 +109,7 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
       userListData: userData?.['userListData'] || [],
       numberOfFriends: Object.keys(users).length,
       locationToTypeMapping,
+      cityToCountryMapping,
     });
   };
 
@@ -125,11 +128,17 @@ export const LocationsProvider: React.FC<{ children: React.ReactNode }> = React.
             Object.entries(processedLocations).filter(([, items]) => Object.keys(items).length > 1)
           );
 
-          const { mappedLocations: newLocations, locationToTypeMapping } = await getMappedLocations(
-            filtered
-          );
+          const {
+            mappedLocations: newLocations,
+            locationToTypeMapping,
+            cityToCountryMapping,
+          } = await getMappedLocations(filtered);
           if (newLocations && isMounted) {
-            setDataWithProcessedLocations(newLocations, locationToTypeMapping);
+            setDataWithProcessedLocations(
+              newLocations,
+              locationToTypeMapping,
+              cityToCountryMapping
+            );
           }
         } else {
           setData({

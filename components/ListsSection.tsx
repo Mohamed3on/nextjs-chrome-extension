@@ -10,9 +10,13 @@ import { useLocationContext } from '@/lib/LocationContext';
 import { useEnableListsContext } from '@/lib/StorageContext';
 import { Checkbox } from '@/components/ui/checkbox';
 import React from 'react';
+import { useProContext } from '@/lib/ProContext';
+import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
+import { ProDialog } from '@/components/ProDialog';
 
 export const ListsSection = () => {
   const { userListData } = useLocationContext();
+  const { isPro } = useProContext();
 
   const { setEnableLists, enableLists, excludedLists, excludeList, removeListExclusion } =
     useEnableListsContext();
@@ -24,16 +28,32 @@ export const ListsSection = () => {
       <div className='mb-4'>
         <p className='text-center text-gray-500 text-xs'>
           Tip: You can
-          <Button
-            variant='link'
-            className='p-1 text-xs '
-            onClick={(e) => {
-              e.preventDefault();
-              setEnableLists(true);
-            }}
-          >
-            include
-          </Button>
+          {isPro && (
+            <Button
+              variant='link'
+              className='p-1 text-xs'
+              onClick={(e) => {
+                e.preventDefault();
+                setEnableLists(true);
+              }}
+            >
+              include
+            </Button>
+          )}
+          {!isPro && (
+            <Dialog>
+              <DialogTrigger>
+                <Button variant='link' className='p-1 text-xs'>
+                  include
+                </Button>
+              </DialogTrigger>
+              <ProDialog
+                onBuyClick={() => {
+                  setEnableLists(true);
+                }}
+              ></ProDialog>
+            </Dialog>
+          )}
           members of your lists in the results
         </p>
       </div>

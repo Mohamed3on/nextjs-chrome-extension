@@ -1,4 +1,5 @@
 import { UsersMap } from '@/components/LocationsWrapper';
+import { emojiCountryCode } from 'country-code-emoji';
 
 interface LocationPart {
   placeType: string;
@@ -11,7 +12,7 @@ interface LocationMapping {
 
 // Precompile Regular Expressions outside of the function
 const irrelevantRegex = new RegExp(
-  'home|subscribe|\\.com|\\.net|\\.org|\\.eth|solana|sphere|zoom|join|sign up|ethereum|👉|newsletter|free|\\.ai|everywhere|online|⬇️|127\\.0\\.0\\.1|they\\/them|he\\/him|http|she\\/her|earth|worldwide|global|🟩|internet|ios|🌴|🍁|\\bhere\\b|\\d+°|🇪🇺|cloud|future|moon|web|network|remote|milky way|international|youtube|metaverse|monday|crypto|space|anywhere|beyond/',
+  'home|subscribe|\\.com|\\.net|\\.org|\\.eth|solana|sphere|zoom|join|sign up|ethereum|👉|newsletter|free|\\.ai|everywhere|online|⬇️|127\\.0\\.0\\.1|they\\/them|he\\/him|http|she\\/her|earth|worldwide|global|🟩|internet|ios|🌴|🍁|\\bhere\\b|\\d+°|🇪🇺|cloud|future|moon|web|network|remote|milky way|international|youtube|metaverse|monday|crypto|space|anywhere|beyond|utc|simulation\\b',
   'i'
 );
 
@@ -40,6 +41,10 @@ export function titleCaseWithAcronyms(str) {
 
 const duplicate_mapping = {
   California: 'CA',
+  'Southern California': 'CA',
+  Lombardia: 'Italy',
+  Italia: 'Italy',
+  Schweiz: 'Switzerland',
   NY: 'New York',
   NYC: 'New York',
   TX: 'Texas',
@@ -57,9 +62,9 @@ const duplicate_mapping = {
   IL: 'Illinois',
   TN: 'Tennessee',
   LA: 'Los Angeles',
-  AZ: 'Arizona',
+  Arizona: 'AZ',
   NC: 'North Carolina',
-  OR: 'Oregon',
+  Oregon: 'OR',
   MD: 'Maryland',
   GA: 'Georgia',
   CT: 'Connecticut',
@@ -68,9 +73,6 @@ const duplicate_mapping = {
   AMS: 'Amsterdam',
   BCN: 'Barcelona',
   BER: 'Berlin',
-  '🇺🇸': 'United States',
-  '🇬🇧': 'United Kingdom',
-  '🇸🇬': 'Singapore',
   MI: 'Michigan',
   NJ: 'New Jersey',
   UT: 'Utah',
@@ -92,12 +94,10 @@ const duplicate_mapping = {
   KY: 'Kentucky',
   NZ: 'New Zealand',
   AU: 'Australia',
-  NE: 'Nebraska',
+  Nebraska: 'NE',
   BLR: 'Bangalore',
   ON: 'Ontario',
-  '🇨🇦': 'Canada',
-  '🇩🇪': 'Germany',
-  '🇪🇬': 'Egypt',
+
   Polska: 'Poland',
   'New York Ny': 'New York',
   'Ma Usa': 'Massachusetts',
@@ -112,7 +112,6 @@ const duplicate_mapping = {
   Bengaluru: 'Bangalore',
   Nederland: 'Netherlands',
   NL: 'Netherlands',
-  '🇳🇱': 'Netherlands',
   'The Netherlands': 'Netherlands',
   Québec: 'Quebec',
   MT: 'Montana',
@@ -126,8 +125,10 @@ const duplicate_mapping = {
   NH: 'New Hampshire',
   Lisboa: 'Lisbon',
   'Ciudad De México': 'Mexico City',
-  OK: 'Oklahoma',
+  Oklahoma: 'OK',
   Warszawa: 'Warsaw',
+  Iowa: 'IA',
+  'Hudson Valley': 'NY',
 };
 
 export function consolidateDuplicates(data) {
@@ -150,7 +151,18 @@ const getLocationParts = (location, alsoSplitComma = true) => {
   const splitRegex = alsoSplitComma
     ? /\s*(?:via|,|\/|\\|&|\+|\||·|\/\/|\|\||→|•|✈️|➡️)\s*|\s+and\s+/
     : /\s*(?:via|\/|\\|&|\+|\||·|\/\/|\|\||→|•|✈️|➡️)\s*|\s+and\s+/;
-  return location
+
+  const flagEmojiRegex = /([\uD800-\uDBFF][\uDC00-\uDFFF]){2}/g;
+
+  const replacedLocation = location.replace(flagEmojiRegex, (match) => {
+    try {
+      const code = emojiCountryCode(match);
+      return code;
+    } catch (e) {
+      return '';
+    }
+  });
+  return replacedLocation
     .replace(/\s*\([^)]*\)/g, '') // Remove content within parentheses
     .replace(/\b\d+k?\b|\b\d+m?\b/gi, '') // Remove numbers and numbers followed by 'k', 'K', 'M', or 'm'
     .split(splitRegex) // Split by delimiters
@@ -270,16 +282,31 @@ const fetchLocationMappings = async (locations) => {
   }
 };
 
-const addAddressParts = (originalValue, placeNameParts, mappedLocations, locationToTypeMapping) => {
+const addAddressParts = (
+  originalValue,
+  placeNameParts,
+  mappedLocations,
+  locationToTypeMapping,
+  cityToCountryMapping
+) => {
   for (const placeNamePart of placeNameParts) {
-    let placeNameText = placeNamePart.text;
+    let placeNameText = placeNamePart.text || placeNamePart;
 
-    if (uniqueLocationRegex.test(placeNameText)) {
-      placeNameText = `${placeNameText}, ${placeNameParts[placeNameParts.length - 1].text}`;
+    if (placeNamePart.text) {
+      if (uniqueLocationRegex.test(placeNameText)) {
+        placeNameText = `${placeNameText}, ${placeNameParts[placeNameParts.length - 1].text}`;
+      }
+
+      const placeType = placeNamePart.placeType === 'place' ? 'city' : placeNamePart.placeType;
+
+      if (!locationToTypeMapping[placeNameText] || placeType === 'city') {
+        locationToTypeMapping[placeNameText] = placeType;
+      }
+
+      if (placeType === 'city') {
+        cityToCountryMapping[placeNameText] = placeNameParts[placeNameParts.length - 1].text;
+      }
     }
-
-    const placeType = placeNamePart.placeType === 'place' ? 'city' : placeNamePart.placeType;
-    locationToTypeMapping[placeNameText] = placeType;
 
     if (!mappedLocations[placeNameText]) {
       mappedLocations[placeNameText] = originalValue;
@@ -304,18 +331,12 @@ const processBatch = async (batch: string[]) => {
   return batchMapping;
 };
 
-const addLocationToTypeMapping = (locationToTypeMapping, addressParts) => {
-  for (const addressPart of addressParts) {
-    const placeType = addressPart.placeType === 'place' ? 'city' : addressPart.placeType;
-    locationToTypeMapping[addressPart.text] = placeType;
-  }
-};
-
 export const getMappedLocations = async (locations: { [key: string]: UsersMap }) => {
   const locationNames = Object.keys(locations);
   let mappedLocations: { [key: string]: UsersMap } = {};
   let locationNamesToFetch: string[] = [];
   const locationToTypeMapping: { [key: string]: string } = {};
+  const cityToCountryMapping: { [key: string]: string } = {};
 
   for (const locationName of locationNames) {
     if (locationName === 'Washington D.C.') {
@@ -330,7 +351,8 @@ export const getMappedLocations = async (locations: { [key: string]: UsersMap })
         locations[locationName],
         cachedMapping.addressParts,
         mappedLocations,
-        locationToTypeMapping
+        locationToTypeMapping,
+        cityToCountryMapping
       );
     } else {
       locationNamesToFetch.push(locationName);
@@ -359,7 +381,8 @@ export const getMappedLocations = async (locations: { [key: string]: UsersMap })
           locations[locationName],
           addressParts,
           mappedLocations,
-          locationToTypeMapping
+          locationToTypeMapping,
+          cityToCountryMapping
         );
       });
     });
@@ -367,6 +390,7 @@ export const getMappedLocations = async (locations: { [key: string]: UsersMap })
     return {
       mappedLocations,
       locationToTypeMapping,
+      cityToCountryMapping,
     };
   } catch (error) {
     console.warn('Failed to fetch mappings, returning original locations', error);
