@@ -160,6 +160,7 @@ const run = async () => {
               });
             } catch (error) {
               console.log(`Error fetching list ${list.name}:`, error);
+              throw error;
             }
           })
         );
