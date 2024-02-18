@@ -97,6 +97,7 @@ const processUser = (user) => {
     avatar: user.profile_image_url_https.replace('_normal', ''),
     followers: user.followers_count,
     location: user.location,
+    bio: user.description,
   };
 };
 
@@ -125,50 +126,46 @@ const run = async () => {
         }
       );
 
-      try {
-        if (!userLists.length) {
-          console.log('No user lists found.');
-          return;
-        }
-        // Use Promise.allSettled to handle each promise individually
-        await Promise.allSettled(
-          userLists.map(async (list) => {
-            try {
-              const listMembers = await fetchListMembers(list.id_str);
-
-              // Prepare the data object
-              const userDataObject = {
-                name: list.name,
-                id: list.id_str,
-                follower_count: list.subscriber_count,
-                member_count: list.member_count,
-                creator: list.user.screen_name,
-                avatar: list.user.profile_image_url_https.replace('_normal', ''),
-                url: `https://twitter.com/i/lists/${list.id_str}`,
-                users: listMembers.users.map(processUser),
-              };
-
-              // Update userData with the new data
-              if (!userData.userListData) {
-                userData.userListData = [];
-              }
-              userData.userListData.push(userDataObject);
-
-              // Save userData to local storage
-              chrome.storage.local.set({ userData }, function () {
-                console.log(`List data for list ${list.name} saved in local storage.`);
-              });
-            } catch (error) {
-              console.log(`Error fetching list ${list.name}:`, error);
-              throw error;
-            }
-          })
-        );
-
-        console.log(`fetched ${userData.userListData.length} lists`);
-      } catch (error) {
-        console.log('error fetching lists:', error);
+      if (!userLists.length) {
+        console.log('No user lists found.');
+        return;
       }
+      // Use Promise.allSettled to handle each promise individually
+      await Promise.allSettled(
+        userLists.map(async (list) => {
+          try {
+            const listMembers = await fetchListMembers(list.id_str);
+
+            // Prepare the data object
+            const userDataObject = {
+              name: list.name,
+              id: list.id_str,
+              follower_count: list.subscriber_count,
+              member_count: list.member_count,
+              creator: list.user.screen_name,
+              avatar: list.user.profile_image_url_https.replace('_normal', ''),
+              url: `https://twitter.com/i/lists/${list.id_str}`,
+              users: listMembers.users.map(processUser),
+            };
+
+            // Update userData with the new data
+            if (!userData.userListData) {
+              userData.userListData = [];
+            }
+            userData.userListData.push(userDataObject);
+
+            // Save userData to local storage
+            chrome.storage.local.set({ userData }, function () {
+              console.log(`List data for list ${list.name} saved in local storage.`);
+            });
+          } catch (error) {
+            console.log(`Error fetching list ${list.name}:`, error);
+            throw error;
+          }
+        })
+      );
+
+      console.log(`fetched ${userData.userListData.length} lists`);
     };
 
     await getPopularFriendsLocations();

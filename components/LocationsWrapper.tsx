@@ -15,6 +15,7 @@ export type User = {
   isFriend: boolean;
   followers: number;
   avatar: string;
+  bio?: string;
 };
 
 export const LocationsWrapper = () => {

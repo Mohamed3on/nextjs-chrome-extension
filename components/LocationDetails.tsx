@@ -72,7 +72,7 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
                     </span>
                     <span className='text-gray-400'>{`@${user.screen_name}`}</span>
                   </div>
-
+                  {user.bio && <div className='text-xs  mt-1'>{user.bio}</div>}
                   {user.lists.length > 0 && (
                     <div className='mt-2 flex gap-1'>
                       {user.lists.map((id) => {
