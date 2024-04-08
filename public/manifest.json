@@ -11,7 +11,8 @@
     "128": "icons/icon128.png"
   },
 
-  "permissions": ["storage", "activeTab", "tabs"],
+  "permissions": ["storage", "tabs"],
+
   "content_scripts": [
     {
       "matches": ["https://*.twitter.com/*"],
