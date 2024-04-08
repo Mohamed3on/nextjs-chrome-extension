@@ -5,7 +5,6 @@ import { useLocationContext } from '@/lib/LocationContext';
 import React from 'react';
 import { ListsSection } from './ListsSection';
 import { cn } from '@/lib/utils';
-import { useProContext } from '@/lib/ProContext';
 import { Badge } from '@/components/ui/badge';
 
 const HeaderSection = () => {
@@ -45,8 +44,6 @@ const locationTypeToColorClassname = {
 };
 export const LocationList = () => {
   const { sortedLocations, numberOfFriends, locationToTypeMapping } = useLocationContext();
-
-  const { isPro } = useProContext();
 
   return (
     <Wrapper>
@@ -95,8 +92,7 @@ export const LocationList = () => {
                             <AvatarImage
                               src={user.avatar}
                               className={cn(
-                                'hover:opacity-60 transition-opacity ease-in-out duration-100 cursor-pointer',
-                                isPro ? '' : 'blur-[1px]'
+                                'hover:opacity-60 transition-opacity ease-in-out duration-100 cursor-pointer'
                               )}
                             />
                           </Avatar>

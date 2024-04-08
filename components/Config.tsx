@@ -26,10 +26,6 @@ import {
 } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { ProDialog } from '@/components/ProDialog';
-import { useProContext } from '@/lib/ProContext';
-import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   twitterHandle: z
@@ -52,7 +48,6 @@ export const Config = ({
   onDataSubmit: (data: z.infer<typeof formSchema>) => void;
   initialData?: z.infer<typeof formSchema>;
 }) => {
-  const { isPro } = useProContext();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -113,27 +108,11 @@ export const Config = ({
                 render={({ field }) => (
                   <FormItem className='flex flex-row items-center space-x-3 space-y-0 shadow'>
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={!isPro}
-                      />
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                     <div className='space-y-1 leading-none'>
-                      <FormLabel className={cn(!isPro && 'text-gray-500')}>
-                        Include your lists in the analysis
-                      </FormLabel>{' '}
-                      {!isPro && (
-                        <Dialog>
-                          <DialogTrigger>
-                            <span className='ml-2 inline-block bg-pink-400 text-xs text-white font-semibold rounded-full px-2.5 py-0.5'>
-                              PRO
-                            </span>
-                          </DialogTrigger>
-                          <ProDialog></ProDialog>
-                        </Dialog>
-                      )}
-                      <FormDescription className={cn(!isPro && 'text-gray-500')}>
+                      <FormLabel>Include your lists in the analysis</FormLabel>{' '}
+                      <FormDescription>
                         Includes members if lists you created or subscribed to in the analysis.
                       </FormDescription>
                     </div>

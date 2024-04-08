@@ -6,7 +6,6 @@ import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Wrapper } from '@/components/LocationList';
 import Sunshine from '@/components/ui/Sunshine';
-import { useProContext } from '@/lib/ProContext';
 
 const formatNumber = (num) => {
   return num?.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -14,8 +13,6 @@ const formatNumber = (num) => {
 
 export const LocationDetails = ({ locationName }: { locationName?: string }) => {
   const { locations, userListData } = useLocationContext();
-
-  const { isPro } = useProContext();
 
   const usersObject = locations[locationName];
 
@@ -36,7 +33,7 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
         <ArrowLeft></ArrowLeft> <span>Back</span>
       </button>
       {/* TODO: use unsplash api to get a random image for the location */}
-      {isPro && <Sunshine locationName={locationName} />}
+      <Sunshine locationName={locationName} />
 
       <h1 className='text-3xl font-semibold mb-6'>
         {sortedUsers.length} Friends in {locationName}
