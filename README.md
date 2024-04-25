@@ -2,7 +2,7 @@
 
 ![Tribe Finder UI](image.png)
 Inspired by [Smallworld](https://github.com/devonzuegel/smallworld) which no longer works
-due to Twitter API changes, Tribe Finder is a 100% free and working Chrome extension that helps you find out where your Twitter friends are
+due to Twitter API changes, [Tribe Finder](https://tribefinder.app) is a 100% free and working Chrome extension that helps you find out where your Twitter friends are
 based.
 
 It's a great way to find out where your friends are located, and to get inspiration for
@@ -10,7 +10,7 @@ cities to live in.
 
 ## Installation
 
-You can use the extension at https://tribefinder.app
+You can install the extension from the Chrome Web Store at https://tribefinder.app
 
 ## Features
 
@@ -40,8 +40,6 @@ are based.
 
 \*Note: The list is inclusive, so if a friend is based in "New York, NY, USA", they will be
 counted towards both "New York" and "USA".
-
--
 
 ## Local development
 
