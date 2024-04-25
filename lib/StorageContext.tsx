@@ -15,7 +15,6 @@ export const EnableListsContext = createContext({
 });
 export const UserDataContext = createContext(null);
 
-// Custom hooks for each context
 export const useTwitterHandleContext = () => React.useContext(TwitterHandleContext);
 export const useEnableListsContext = () => React.useContext(EnableListsContext);
 export const useUserDataContext = () => React.useContext(UserDataContext);
@@ -36,7 +35,6 @@ function storageReducer(state, action) {
   }
 }
 
-// Storage Provider Component
 export const StorageProvider = ({ children }) => {
   const [state, dispatch] = useReducer(storageReducer, {
     twitterHandle: '',
@@ -79,7 +77,6 @@ export const StorageProvider = ({ children }) => {
     return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, []);
 
-  // Updating local storage in a centralized function
   const updateLocalStorage = useCallback((data) => {
     try {
       chrome.storage.local.set(data);

@@ -1,45 +1,62 @@
-# nextjs-chrome-extension
+# Tribe Finder
 
-An unopiniated starter for developing Chrome extensions using Next.js
+Inspired by [Smallworld](https://github.com/devonzuegel/smallworld) which no longer works
+due to Twitter API changes, Tribe Finder is a 100% free and working Chrome extension that helps you find out where your Twitter friends are
+based.
 
-<p align="center">
-<img src="./images/nextjs-chrome-extension.png" alt="Screenshot of nextjs-chrome-extension" width="616">
-</p>
-  
-## Getting Started
+It's a great way to find out where your friends are located, and to get inspiration for
+cities to live in.
 
-First, install dependencies and build the project:
-```bash
-npm install && npm run build
-```
-This will create an `/out` directory that can you can add to Chrome as an extension. The `manifest.json` links `pages/index.js` to the generated `index.html`. On top of that, the `/public/inject.js` script is configured to run on any host url.
+## Installation
 
-Second, start developing:
-```bash
-npm run dev
-```
-You can start editing the extension by modifying `pages/index.js` or any file in `/public`. The extension will automatically re-build as you make changes.
+You can use the extension at https://tribefinder.app
 
-**🚩 Note**: [`gsed`](https://formulae.brew.sh/formula/gnu-sed#default) is used during `build` and `development` steps to bundle the project in a Chrome extension. Therefore, you will need to have this CLI installed on your development machine.
-```bash
-brew install gsed // homebrew installation
-```
+## Features
 
-## Add extension to chrome
+- Get inspirations for cities to live in, with recommendations based on your own community.
+- Find friends to meet up with when travelling.
+- See sunshine hours for the cities where your friends live.
+- Include members of your Twitter Lists in your tribe.
+- No Twitter Login required.
+- Totally private, your data is stored locally.
+- You can run it for any twitter profile, not just your own.
 
-Open the Extension Management page by navigating to `chrome://extensions`. Enable Developer Mode by clicking the toggle switch next to Developer mode. Click the Load unpacked button and select the `/out` directory.
+## Limitations:
 
-<p align="center">
-<img src="/images/add-extension-to-chrome.png" alt="Screenshot of chrome://extensions page" width="616">
-</p>
+- Only works for public Twitter profiles
+- Only shows locations with at least 2 friends in them
+- Only counts friends who have a valid location in their Twitter profile
 
-## Learn More
+## How it works
 
-To learn more about Next.js or extensions, take a look at the following resources:
+When the user enters their Twitter username, we run open a Twitter page and run a couple of API
+requests to get the user's friends and lists. We then geocode the clean up the location data using a
+bunch of regex magic, and feed those into Mapbox's Geocoding API to get the details of the each
+location (city, country, etc).
 
-- [Chrome Extensions Documentation](https://developer.chrome.com/docs/extensions/)
-- [Next.js Documentation](https://nextjs.org/docs)
+We then aggregate the data and show the user a sorted list of countries/cities where their friends
+are based.
 
-This template was originally inspired by the following article, [Creating a Chrome Extension with NextJS](https://aaronscherer.me/blog/post/creating-a-chrome-extension-with-nextjs).
+\*Note: The list is inclusive, so if a friend is based in "New York, NY, USA", they will be
+counted towards both "New York" and "USA".
 
+-
 
+## Local development
+
+1. Clone the repository
+2. Run `bun install`
+3. Run `bun run dev` to start the development server
+4. Go to `chrome://extensions/` in your browser
+5. Enable developer mode
+6. Click on `Load unpacked` and select the `out` folder
+7. The extension should now be installed, you can open it by clicking on the extension icon in the top right corner of your browser
+
+## Tech Stack
+
+- Next.js (static export)
+- TypeScript
+- Tailwind CSS
+- Shadcn UI
+- react-hook-form
+- Unofficial Twitter API (don't tell elon)

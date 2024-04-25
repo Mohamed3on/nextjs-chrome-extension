@@ -1,7 +1,8 @@
 /* eslint-disable react/display-name */
 import React, { createContext, useState, useEffect } from 'react';
 import { User, UsersMap } from '@/components/LocationsWrapper';
-import { getMappedLocations, processLocations } from '@/utils/data';
+import { getMappedLocations } from '@/utils/processLocations';
+import { processLocations } from '@/utils/locationProcessing';
 import { useEnableListsContext, useUserDataContext } from '@/lib/StorageContext';
 
 export const LocationsContext = createContext(null);

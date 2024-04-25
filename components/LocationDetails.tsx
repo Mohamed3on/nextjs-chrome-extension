@@ -32,7 +32,6 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
       >
         <ArrowLeft></ArrowLeft> <span>Back</span>
       </button>
-      {/* TODO: use unsplash api to get a random image for the location */}
       <Sunshine locationName={locationName} />
 
       <h1 className='text-3xl font-semibold mb-6'>

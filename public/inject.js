@@ -51,7 +51,6 @@ async function fetchFromAPI(endpoint, params = '', useAlternativeToken = false) 
 }
 
 const fetchUserLists = async (screen_name) => {
-  // const url = `https://api.twitter.com/1.1/lists/list.json?screen_name=${screen_name}`;
   try {
     const lists = await fetchFromAPI(`lists/list.json`, `screen_name=${screen_name}`, false);
     return lists;
@@ -122,13 +121,11 @@ const run = async () => {
         console.log('No user lists found.');
         return;
       }
-      // Use Promise.allSettled to handle each promise individually
       await Promise.allSettled(
         userLists.map(async (list) => {
           try {
             const listMembers = await fetchListMembers(list.id_str);
 
-            // Prepare the data object
             const userDataObject = {
               name: list.name,
               id: list.id_str,
@@ -140,13 +137,11 @@ const run = async () => {
               users: listMembers.users.map(processUser),
             };
 
-            // Update userData with the new data
             if (!userData.userListData) {
               userData.userListData = [];
             }
             userData.userListData.push(userDataObject);
 
-            // Save userData to local storage
             chrome.storage.local.set({ userData }, function () {
               console.log(`List data for list ${list.name} saved in local storage.`);
             });

@@ -1,27 +1,39 @@
-import { UsersMap } from '@/components/LocationsWrapper';
 import { emojiCountryCode } from 'country-code-emoji';
 
-interface LocationPart {
-  placeType: string;
-  text: string;
-}
-interface LocationMapping {
-  addressParts: LocationPart[];
-  coordinates?: number[];
-}
-
-// Precompile Regular Expressions outside of the function
-const irrelevantRegex = new RegExp(
+export const irrelevantRegex = new RegExp(
   'home|subscribe|\\.com|\\.net|\\.org|\\.eth|solana|sphere|zoom|join|sign up|ethereum|👉|newsletter|free|\\.ai|everywhere|online|⬇️|127\\.0\\.0\\.1|they\\/them|he\\/him|http|she\\/her|earth|worldwide|global|🟩|internet|ios|🌴|🍁|\\bhere\\b|\\d+°|🇪🇺|cloud|future|moon|web|network|remote|milky way|international|youtube|metaverse|monday|crypto|space|anywhere|beyond|utc|simulation\\b',
   'i'
 );
+export const removeRegex = new RegExp('europe|(?:the\\s+)?world|🌎|🌍|🌏|🌐|☁️|!', 'g');
 
-const removeRegex = new RegExp('europe|(?:the\\s+)?world|🌎|🌍|🌏|🌐|☁️|!', 'g');
-const uniqueLocationRegex = new RegExp(
+export const uniqueLocationRegex = new RegExp(
   '\\b(alexandria|cambridge|victoria|san jose|venice|bend)\\b',
   'gi'
 );
-const coordsRegex = /-?\d+\.\d+,-?\d+\.\d+/g;
+export const coordsRegex = /-?\d+\.\d+,-?\d+\.\d+/g;
+
+export const processLocation = (location) => {
+  const lowerCaseLocation = location.toLowerCase();
+
+  // Early return for irrelevant locations
+  if (irrelevantRegex.test(lowerCaseLocation) || coordsRegex.test(lowerCaseLocation)) {
+    return null;
+  }
+
+  // Remove specific terms
+  let processedLocation = lowerCaseLocation.replace(removeRegex, '');
+
+  if (processedLocation.includes('washington, ')) {
+    return ['washington dc'];
+  }
+
+  if (uniqueLocationRegex.test(processedLocation)) {
+    return getLocationParts(processedLocation, false);
+  }
+
+  // Further process the location string
+  return getLocationParts(processedLocation, true);
+}; // Precompile Regular Expressions outside of the function
 
 export function titleCaseWithAcronyms(str) {
   // If the location is an acronym, Uppercase it (SF, USA, UK, etc.)
@@ -38,7 +50,6 @@ export function titleCaseWithAcronyms(str) {
 
   return newStr;
 }
-
 const duplicate_mapping = {
   California: 'CA',
   'Southern California': 'CA',
@@ -147,7 +158,7 @@ export function consolidateDuplicates(data) {
   return consolidatedData;
 }
 
-const getLocationParts = (location, alsoSplitComma = true) => {
+export const getLocationParts = (location, alsoSplitComma = true) => {
   const splitRegex = alsoSplitComma
     ? /\s*(?:via|,|\/|\\|&|\+|\||·|\/\/|\|\||→|•|✈️|➡️)\s*|\s+and\s+/
     : /\s*(?:via|\/|\\|&|\+|\||·|\/\/|\|\||→|•|✈️|➡️)\s*|\s+and\s+/;
@@ -173,29 +184,6 @@ const getLocationParts = (location, alsoSplitComma = true) => {
       return l.trim();
     })
     .filter((l) => l !== '');
-};
-
-export const processLocation = (location) => {
-  const lowerCaseLocation = location.toLowerCase();
-
-  // Early return for irrelevant locations
-  if (irrelevantRegex.test(lowerCaseLocation) || coordsRegex.test(lowerCaseLocation)) {
-    return null;
-  }
-
-  // Remove specific terms
-  let processedLocation = lowerCaseLocation.replace(removeRegex, '');
-
-  if (processedLocation.includes('washington, ')) {
-    return ['washington dc'];
-  }
-
-  if (uniqueLocationRegex.test(processedLocation)) {
-    return getLocationParts(processedLocation, false);
-  }
-
-  // Further process the location string
-  return getLocationParts(processedLocation, true);
 };
 
 export const processLocations = (users) => {
@@ -231,58 +219,7 @@ export const addLocations = (theList) => {
   return locations;
 };
 
-const getCachedLocationMapping = async (key: string): Promise<LocationMapping | null> => {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get([key], (result) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        if (result[key]) {
-          resolve(result[key] as LocationMapping);
-        } else {
-          resolve(null);
-        }
-      }
-    });
-  });
-};
-
-const setCachedLocationMapping = (key, value) => {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.set({ [key]: value }, () => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(true);
-      }
-    });
-  });
-};
-
-const fetchLocationMappings = async (locations) => {
-  try {
-    const response = await fetch('https://location-coords-cache.vercel.app/api/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ placeNames: locations }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    return data;
-  } catch (error) {
-    console.error('Failed to load data:', error);
-    return null;
-  }
-};
-
-const addAddressParts = (
+export const addAddressParts = (
   originalValue,
   placeNameParts,
   mappedLocations,
@@ -319,84 +256,4 @@ const addAddressParts = (
   }
 
   return mappedLocations;
-};
-
-const processBatch = async (batch: string[]) => {
-  const batchMapping: { [key: string]: LocationMapping } = await fetchLocationMappings(batch);
-
-  for (const location of Object.keys(batchMapping)) {
-    await setCachedLocationMapping(location, batchMapping[location]);
-  }
-
-  return batchMapping;
-};
-
-export const getMappedLocations = async (locations: { [key: string]: UsersMap }) => {
-  const locationNames = Object.keys(locations);
-  let mappedLocations: { [key: string]: UsersMap } = {};
-  let locationNamesToFetch: string[] = [];
-  const locationToTypeMapping: { [key: string]: string } = {};
-  const cityToCountryMapping: { [key: string]: string } = {};
-
-  for (const locationName of locationNames) {
-    if (locationName === 'Washington D.C.') {
-      mappedLocations[locationName] = locations[locationName];
-      continue;
-    }
-
-    const cachedMapping: LocationMapping | null = await getCachedLocationMapping(locationName);
-
-    if (cachedMapping) {
-      mappedLocations = addAddressParts(
-        locations[locationName],
-        cachedMapping.addressParts,
-        mappedLocations,
-        locationToTypeMapping,
-        cityToCountryMapping
-      );
-    } else {
-      locationNamesToFetch.push(locationName);
-    }
-  }
-
-  // Split locationNamesToFetch into batches and process each batch
-  const batchSize = 40;
-  try {
-    let batchPromises = [];
-    for (let i = 0; i < locationNamesToFetch.length; i += batchSize) {
-      const batch = locationNamesToFetch.slice(i, i + batchSize);
-      batchPromises.push(processBatch(batch));
-    }
-
-    const batchMappings = await Promise.all(batchPromises);
-
-    // Merge results from all batches
-    batchMappings.forEach((batchResult) => {
-      Object.keys(batchResult).forEach((locationName) => {
-        const locationData = batchResult[locationName];
-
-        const addressParts = locationData.addressParts;
-
-        mappedLocations = addAddressParts(
-          locations[locationName],
-          addressParts,
-          mappedLocations,
-          locationToTypeMapping,
-          cityToCountryMapping
-        );
-      });
-    });
-
-    return {
-      mappedLocations,
-      locationToTypeMapping,
-      cityToCountryMapping,
-    };
-  } catch (error) {
-    console.warn('Failed to fetch mappings, returning original locations', error);
-    return {
-      ...locations,
-      ...mappedLocations,
-    };
-  }
 };

@@ -7,7 +7,7 @@ function getClientId() {
   return clientId;
 }
 
-const mixpanelToken = 'f8369ca1a3ed0d94906903132d6d5552'; // Replace with your Mixpanel Project Token
+const mixpanelToken = 'f8369ca1a3ed0d94906903132d6d5552';
 
 export const trackEvent = async (eventName, properties = {}) => {
   const eventData = {
