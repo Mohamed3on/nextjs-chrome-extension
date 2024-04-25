@@ -1,43 +1,36 @@
-chrome.runtime.onMessage.addListener(({ message }, sender, sendResponse) => {
-  if (message === 'refresh') {
-    console.log('refreshing data...');
-    run()
-      .then(() => {
-        console.log('done!!!');
-        sendResponse({ message: 'done', type: 'success' });
-      })
-      .catch((error) => {
-        console.log('error, user probably private or does not exist', error);
-        sendResponse({
-          message: 'user probably private or does not exist',
-          error: error.message,
-          type: 'error',
-        });
-      });
-    return true; // Keep the message channel open for the response
+const config = {
+  bearerToken:
+    'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
+  alternativeBearerToken:
+    'AAAAAAAAAAAAAAAAAAAAAFQODgEAAAAAVHTp76lzh3rFzcHbmHVvQxYYpTw%3DckAlMINMjmCwxUcaXbAN4XqJVdgMJaHqNOFgPMK0zN1qLqLQCF',
+  apiBaseURL: 'https://api.twitter.com/1.1',
+};
+
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  if (request.message === 'refresh') {
+    try {
+      const screenName = await readLocalStorage('twitterHandle');
+      await updateUserData(screenName);
+      sendResponse({ message: 'Data refreshed', type: 'success' });
+    } catch (error) {
+      console.error('Error updating data:', error);
+      sendResponse({ message: 'Failed to update data', error: error.message, type: 'error' });
+    }
+    return true; // Indicate async response
   }
 });
 
-const readLocalStorage = async (key) => {
-  return new Promise((resolve, reject) => {
-    chrome.storage.local.get([key], function (result) {
-      if (result[key] === undefined) {
-        resolve(null);
-      } else {
-        resolve(result[key]);
-      }
+async function readLocalStorage(key) {
+  return new Promise((resolve) => {
+    chrome.storage.local.get([key], (result) => {
+      resolve(result[key] || null);
     });
   });
-};
+}
 
-const bearerToken =
-  'AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA';
-
-const alternativeBearerToken =
-  'AAAAAAAAAAAAAAAAAAAAAFQODgEAAAAAVHTp76lzh3rFzcHbmHVvQxYYpTw%3DckAlMINMjmCwxUcaXbAN4XqJVdgMJaHqNOFgPMK0zN1qLqLQCF';
-
-const makeTwitterApiRequest = async (url, useAlternativeToken = false) => {
-  const token = useAlternativeToken ? alternativeBearerToken : bearerToken;
+async function fetchFromAPI(endpoint, params = '', useAlternativeToken = false) {
+  const token = useAlternativeToken ? config.alternativeBearerToken : config.bearerToken;
+  const url = `${config.apiBaseURL}/${endpoint}?${params}`;
 
   const response = await fetch(url, {
     method: 'GET',
@@ -49,20 +42,18 @@ const makeTwitterApiRequest = async (url, useAlternativeToken = false) => {
 
   if (!response.ok) {
     if (response.status === 429 && !useAlternativeToken) {
-      console.log('Rate limit exceeded with primary token, trying alternative token...');
-      return makeTwitterApiRequest(url, true);
-    } else {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.log('Rate limit exceeded, trying alternative token...');
+      return fetchFromAPI(endpoint, params, true);
     }
+    throw new Error(`HTTP error! Status: ${response.status}`);
   }
-
   return response.json();
-};
+}
 
 const fetchUserLists = async (screen_name) => {
-  const url = `https://api.twitter.com/1.1/lists/list.json?screen_name=${screen_name}`;
+  // const url = `https://api.twitter.com/1.1/lists/list.json?screen_name=${screen_name}`;
   try {
-    const lists = await makeTwitterApiRequest(url);
+    const lists = await fetchFromAPI(`lists/list.json`, `screen_name=${screen_name}`, false);
     return lists;
   } catch (error) {
     return [];
@@ -70,9 +61,7 @@ const fetchUserLists = async (screen_name) => {
 };
 
 const fetchListMembers = async (listID) => {
-  return makeTwitterApiRequest(
-    `https://api.twitter.com/1.1/lists/members.json?list_id=${listID}&count=5000`
-  );
+  return fetchFromAPI(`lists/members.json`, `list_id=${listID}&count=5000`, false);
 };
 
 const fetchFollowingList = async (screen_name) => {
@@ -80,8 +69,11 @@ const fetchFollowingList = async (screen_name) => {
   let cursor = -1;
 
   do {
-    const url = `https://api.twitter.com/1.1/friends/list.json?screen_name=${screen_name}&count=200&cursor=${cursor}`;
-    const data = await makeTwitterApiRequest(url);
+    const data = await fetchFromAPI(
+      `friends/list.json`,
+      `screen_name=${screen_name}&count=200&cursor=${cursor}`,
+      false
+    );
 
     allFriends = allFriends.concat(data.users);
     cursor = data.next_cursor;

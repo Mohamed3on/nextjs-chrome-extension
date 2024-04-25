@@ -1,6 +1,6 @@
-import { readLocalStorage } from '@/utils/localStorage';
-import React, { createContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useReducer, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { readLocalStorage } from '@/utils/localStorage';
 
 export const TwitterHandleContext = createContext({
   twitterHandle: '',
@@ -15,149 +15,126 @@ export const EnableListsContext = createContext({
 });
 export const UserDataContext = createContext(null);
 
-export const useTwitterHandleContext = () => {
-  const context = React.useContext(TwitterHandleContext);
+// Custom hooks for each context
+export const useTwitterHandleContext = () => React.useContext(TwitterHandleContext);
+export const useEnableListsContext = () => React.useContext(EnableListsContext);
+export const useUserDataContext = () => React.useContext(UserDataContext);
 
-  if (context === undefined) {
-    throw new Error('useTwitterHandleContext must be used within a TwitterHandleProvider');
+// Reducer for managing all related state
+function storageReducer(state, action) {
+  switch (action.type) {
+    case 'SET_TWITTER_HANDLE':
+      return { ...state, twitterHandle: action.payload };
+    case 'SET_ENABLE_LISTS':
+      return { ...state, enableLists: action.payload };
+    case 'SET_USER_DATA':
+      return { ...state, userData: action.payload };
+    case 'UPDATE_EXCLUDED_LISTS':
+      return { ...state, excludedLists: action.payload };
+    default:
+      return state;
   }
+}
 
-  return context;
-};
-
-export const useEnableListsContext = () => {
-  const context = React.useContext(EnableListsContext);
-
-  if (context === undefined) {
-    throw new Error('useEnableListsContext must be used within a EnableListsProvider');
-  }
-
-  return context;
-};
-
-export const useUserDataContext = () => {
-  const context = React.useContext(UserDataContext);
-
-  if (context === undefined) {
-    throw new Error('useUserDataContext must be used within a UserDataProvider');
-  }
-
-  return context;
-};
-
+// Storage Provider Component
 export const StorageProvider = ({ children }) => {
-  const [twitterHandle, setTwitterHandle] = useState('');
-  const [enableLists, setEnableLists] = useState(false);
-  const [excludedLists, setExcludedLists] = useState([]);
+  const [state, dispatch] = useReducer(storageReducer, {
+    twitterHandle: '',
+    enableLists: false,
+    excludedLists: [],
+    userData: null,
+  });
 
-  const [userData, setUserData] = useState(null);
-
+  // Effect for initial data fetch
   useEffect(() => {
-    // Fetch initial data from storage
-    const fetchData = async () => {
-      let result = {};
+    const fetchInitialData = async () => {
       try {
-        result = await readLocalStorage([
-          'twitterHandle',
-          'enableLists',
-          'userData',
-          'excludedLists',
-        ]);
+        const result: {
+          twitterHandle?: string;
+          enableLists?: boolean;
+          userData?: any;
+          excludedLists?: string[];
+        } = await readLocalStorage(['twitterHandle', 'enableLists', 'userData', 'excludedLists']);
+        dispatch({ type: 'SET_TWITTER_HANDLE', payload: result.twitterHandle || '' });
+        dispatch({ type: 'SET_ENABLE_LISTS', payload: result.enableLists || false });
+        dispatch({ type: 'SET_USER_DATA', payload: result.userData || null });
+        dispatch({ type: 'UPDATE_EXCLUDED_LISTS', payload: result.excludedLists || [] });
       } catch (error) {
         console.log('no user data was found yet');
       }
-
-      setTwitterHandle(result?.['twitterHandle'] || '');
-      setEnableLists(result?.['enableLists'] || false);
-      setUserData(result?.['userData'] || null);
-      setExcludedLists(result?.['excludedLists'] || []);
     };
+    fetchInitialData();
+  }, []);
 
-    fetchData();
-
-    // Function to handle storage changes
+  // Handler for storage changes
+  useEffect(() => {
     const handleStorageChange = (changes, areaName) => {
-      // Handle changes
       if (areaName === 'local') {
-        if (changes.hasOwnProperty('userData')) {
-          setUserData(changes?.['userData']?.newValue || null);
+        if (changes.userData) {
+          dispatch({ type: 'SET_USER_DATA', payload: changes.userData.newValue || null });
         }
       }
     };
-
-    // Add storage change listener
     chrome.storage.onChanged.addListener(handleStorageChange);
-
-    // Cleanup
-    return () => {
-      chrome.storage.onChanged.removeListener(handleStorageChange);
-    };
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange);
   }, []);
 
-  const setLocalStorage = (data) => {
+  // Updating local storage in a centralized function
+  const updateLocalStorage = useCallback((data) => {
     try {
       chrome.storage.local.set(data);
     } catch (error) {
       console.error('Error setting data in storage:', error);
     }
-  };
+  }, []);
 
   return (
     <TwitterHandleContext.Provider
-      value={useMemo(
-        () => ({
-          twitterHandle,
-          setTwitterHandle: (twitterHandle) => {
-            setTwitterHandle((prevHandle) => {
-              if (prevHandle !== twitterHandle) {
-                toast('Please wait while we fetch your data', {
-                  description:
-                    'This might take a few seconds. Please do not close the open twitter tab in the meantime',
-                  duration: 5000,
-                  dismissible: true,
-                });
-                setUserData(null);
-                setExcludedLists([]);
-                setLocalStorage({
-                  lastAutoRefresh: {},
-                  userData: null,
-                  excludedLists: [],
-                  twitterHandle,
-                });
-              }
-
-              return twitterHandle;
+      value={{
+        twitterHandle: state.twitterHandle,
+        setTwitterHandle: (handle) => {
+          if (handle !== state.twitterHandle) {
+            toast('Please wait while we fetch your data', {
+              description:
+                'This might take a few seconds. Please do not close the open twitter tab in the meantime',
+              duration: 5000,
+              dismissible: true,
             });
-          },
-        }),
-        [twitterHandle, setTwitterHandle]
-      )}
+            updateLocalStorage({
+              twitterHandle: handle,
+              lastAutoRefresh: {},
+              userData: null,
+              excludedLists: [],
+            });
+
+            dispatch({ type: 'SET_TWITTER_HANDLE', payload: handle });
+            dispatch({ type: 'SET_USER_DATA', payload: null });
+            dispatch({ type: 'UPDATE_EXCLUDED_LISTS', payload: [] });
+          }
+        },
+      }}
     >
       <EnableListsContext.Provider
-        value={useMemo(
-          () => ({
-            enableLists,
-            setEnableLists: (enableLists) => {
-              setLocalStorage({ enableLists });
-              setEnableLists(enableLists);
-            },
-            excludedLists,
-            excludeList: (listId) => {
-              setLocalStorage({ excludedLists: [...excludedLists, listId] });
-              setExcludedLists((prev) => [...prev, listId]);
-            },
-
-            removeListExclusion: (listId) => {
-              setLocalStorage({
-                excludedLists: excludedLists.filter((id) => id !== listId),
-              });
-              setExcludedLists((prev) => prev.filter((id) => id !== listId));
-            },
-          }),
-          [enableLists, setEnableLists, excludedLists, setExcludedLists]
-        )}
+        value={{
+          enableLists: state.enableLists,
+          setEnableLists: (enable) => {
+            updateLocalStorage({ enableLists: enable });
+            dispatch({ type: 'SET_ENABLE_LISTS', payload: enable });
+          },
+          excludedLists: state.excludedLists,
+          excludeList: (listId) => {
+            const updatedLists = [...state.excludedLists, listId];
+            updateLocalStorage({ excludedLists: updatedLists });
+            dispatch({ type: 'UPDATE_EXCLUDED_LISTS', payload: updatedLists });
+          },
+          removeListExclusion: (listId) => {
+            const updatedLists = state.excludedLists.filter((id) => id !== listId);
+            updateLocalStorage({ excludedLists: updatedLists });
+            dispatch({ type: 'UPDATE_EXCLUDED_LISTS', payload: updatedLists });
+          },
+        }}
       >
-        <UserDataContext.Provider value={userData}>{children}</UserDataContext.Provider>
+        <UserDataContext.Provider value={state.userData}>{children}</UserDataContext.Provider>
       </EnableListsContext.Provider>
     </TwitterHandleContext.Provider>
   );
