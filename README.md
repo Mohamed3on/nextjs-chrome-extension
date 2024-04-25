@@ -59,3 +59,7 @@ counted towards both "New York" and "USA".
 - Shadcn UI
 - react-hook-form
 - Unofficial Twitter API (don't tell elon)
+
+## Read More
+
+If you're interested in why I built Tribe Finder, I wrote about it [here](https://www.mohamed3on.com/tribe-finder/)
