@@ -1,5 +1,6 @@
 # Tribe Finder
 
+![Tribe Finder UI](image.png)
 Inspired by [Smallworld](https://github.com/devonzuegel/smallworld) which no longer works
 due to Twitter API changes, Tribe Finder is a 100% free and working Chrome extension that helps you find out where your Twitter friends are
 based.
