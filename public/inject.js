@@ -28,10 +28,9 @@ async function readLocalStorage(key) {
   });
 }
 
-async function fetchFromAPI(endpoint, params = '', useAlternativeToken = false) {
+const fetchFromAPI = async (endpoint, params = '', useAlternativeToken = false) => {
   const token = useAlternativeToken ? config.alternativeBearerToken : config.bearerToken;
   const url = `${config.apiBaseURL}/${endpoint}?${params}`;
-
   const response = await fetch(url, {
     method: 'GET',
     headers: {
@@ -48,7 +47,7 @@ async function fetchFromAPI(endpoint, params = '', useAlternativeToken = false) 
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
   return response.json();
-}
+};
 
 const fetchUserLists = async (screen_name) => {
   try {
@@ -68,14 +67,18 @@ const fetchFollowingList = async (screen_name) => {
   let cursor = -1;
 
   do {
-    const data = await fetchFromAPI(
-      `friends/list.json`,
-      `screen_name=${screen_name}&count=200&cursor=${cursor}`,
-      false
-    );
-
-    allFriends = allFriends.concat(data.users);
-    cursor = data.next_cursor;
+    try {
+      const data = await fetchFromAPI(
+        `friends/list.json`,
+        `screen_name=${screen_name}&count=200&cursor=${cursor}`,
+        false
+      );
+      allFriends = allFriends.concat(data.users);
+      cursor = data.next_cursor;
+    } catch (error) {
+      console.error('Failed to fetch friends list:', error);
+      throw error; // Stop further pagination and rethrow error to be handled higher up
+    }
   } while (cursor !== 0);
 
   return allFriends;
@@ -185,19 +188,18 @@ const run = async () => {
     }
   }
 
-  await run()
-    .then(() => {
-      lastAutoRefreshObj[screen_name] = new Date().toISOString();
-      chrome.storage.local.set(
-        {
-          lastAutoRefresh: lastAutoRefreshObj,
-        },
-        function () {
-          console.log(`Auto-refresh time updated for ${screen_name} in local storage.`);
-        }
-      );
-    })
-    .catch((error) => {
-      console.log('error, user probably private or does not exist', error);
-    });
+  try {
+    await run();
+    lastAutoRefreshObj[screen_name] = new Date().toISOString();
+    chrome.storage.local.set(
+      {
+        lastAutoRefresh: lastAutoRefreshObj,
+      },
+      function () {
+        console.log(`Auto-refresh time updated for ${screen_name} in local storage.`);
+      }
+    );
+  } catch (error) {
+    console.log('error, user probably private or does not exist', error);
+  }
 })();
