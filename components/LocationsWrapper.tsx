@@ -1,4 +1,3 @@
-import React from 'react';
 import { LocationList } from '@/components/LocationList';
 import { Refresh } from '@/components/Refresh';
 import { useLocationContext } from '@/lib/LocationContext';
@@ -16,6 +15,7 @@ export type User = {
   followers: number;
   avatar: string;
   bio?: string;
+  last_tweet_time?: string;
 };
 
 export const LocationsWrapper = () => {

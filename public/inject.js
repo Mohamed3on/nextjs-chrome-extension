@@ -92,6 +92,7 @@ const processUser = (user) => {
     followers: user.followers_count,
     location: user.location,
     bio: user.description,
+    last_tweet_time: user.status ? user.status.created_at : null,
   };
 };
 
