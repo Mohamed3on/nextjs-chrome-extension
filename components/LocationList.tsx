@@ -2,10 +2,9 @@ import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLocationContext } from '@/lib/LocationContext';
 
-import React from 'react';
-import { ListsSection } from './ListsSection';
-import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { ListsSection } from './ListsSection';
 
 const HeaderSection = () => {
   const { sortedLocations } = useLocationContext();
@@ -23,7 +22,7 @@ const HeaderSection = () => {
         className='flex items-center justify-center py-4 px-6 mb-6 max-w-sm mx-auto cta-gradient text-white font-semibold rounded-md shadow-md hover:shadow-lg
 active:scale-95 transition-transform ease-in-out duration-100
 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50 text-lg'
-        href={`https://twitter.com/intent/tweet?text=${tweetText}`}
+        href={`https://x.com/intent/tweet?text=${tweetText}`}
         target='_blank'
         rel='noreferrer'
       >

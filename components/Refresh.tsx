@@ -12,7 +12,9 @@ export const Refresh = () => {
   useEffect(() => {
     if (!userData)
       chrome.tabs.query({ currentWindow: true }, function (tabs) {
-        const allMatchingTabs = tabs.filter((tab) => tab.url.includes('twitter.com'));
+        const allMatchingTabs = tabs.filter(
+          (tab) => tab.url.includes('twitter.com') || tab.url.includes('x.com')
+        );
 
         if (allMatchingTabs.length > 0) {
           try {
@@ -26,7 +28,7 @@ export const Refresh = () => {
                   'Something went wrong. The user account may be private or suspended.'
                 );
               } else {
-                chrome.tabs.create({ url: `https://twitter.com/`, active: false });
+                chrome.tabs.create({ url: `https://x.com/`, active: false });
               }
             });
           } catch (error) {
@@ -34,7 +36,7 @@ export const Refresh = () => {
           }
         } else {
           // runs inject.js to fetch the new data
-          chrome.tabs.create({ url: `https://twitter.com/`, active: false });
+          chrome.tabs.create({ url: `https://x.com/`, active: false });
         }
       });
   }, [twitterHandle, userData]);

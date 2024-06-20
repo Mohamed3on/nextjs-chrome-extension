@@ -64,7 +64,7 @@ export const LocationDetails = ({ locationName }: { locationName?: string }) => 
         {sortedUsers.map((user, index) => (
           <li key={index}>
             <a
-              href={`https://twitter.com/${user.screen_name}`}
+              href={`https://x.com/${user.screen_name}`}
               target='_blank'
               rel='noopener noreferrer'
               className='flex justify-between gap-2 items-center p-4  rounded-lg shadow-xl text-base bg-gray-700 hover:bg-gray-300 hover:text-gray-900 active:bg-gray-500 transition-colors ease-in-out'

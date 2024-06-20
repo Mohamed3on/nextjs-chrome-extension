@@ -9,8 +9,7 @@ const config = {
 chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
   if (request.message === 'refresh') {
     try {
-      const screenName = await readLocalStorage('twitterHandle');
-      await updateUserData(screenName);
+      await run();
       sendResponse({ message: 'Data refreshed', type: 'success' });
     } catch (error) {
       console.error('Error updating data:', error);
