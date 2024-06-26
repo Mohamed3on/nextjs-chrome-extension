@@ -16,6 +16,7 @@ export type User = {
   avatar: string;
   bio?: string;
   last_tweet_time?: string;
+  id: string;
 };
 
 export const LocationsWrapper = () => {

@@ -179,7 +179,7 @@ export const getLocationParts = (location, alsoSplitComma = true) => {
     .split(splitRegex) // Split by delimiters
     .map((l) => {
       if (l.includes('bay area') || l.includes('silicon valley')) {
-        return 'california';
+        return 'san francisco';
       }
       return l.trim();
     })

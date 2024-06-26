@@ -85,6 +85,7 @@ const fetchFollowingList = async (screen_name) => {
 
 const processUser = (user) => {
   return {
+    id: user.id_str,
     name: user.name,
     screen_name: user.screen_name,
     avatar: user.profile_image_url_https.replace('_normal', ''),
